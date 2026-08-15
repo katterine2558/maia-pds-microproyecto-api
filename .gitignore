@@ -16,10 +16,12 @@ env/
 .ipynb_checkpoints/
 
 # Datos: los versiona DVC, no Git.
-# Los .dvc y dvc.lock SI se versionan (ver excepciones abajo).
-data/
+# Se excluye el CONTENIDO (data/**), no la carpeta: si se excluyera la carpeta
+# Git no desciende y las excepciones de abajo nunca aplicarian.
+data/**
+!data/**/
 !data/**/*.dvc
-!data/.gitignore
+!data/**/.gitkeep
 
 # DVC
 /.dvc/cache
@@ -31,8 +33,13 @@ mlruns/
 mlartifacts/
 mlflow.db
 
-# Modelos empaquetados (artefactos binarios)
-models/
+# Modelos empaquetados (artefactos binarios): los versiona DVC
+models/**
+!models/**/
+!models/**/*.dvc
+!models/**/.gitkeep
+
+# Artefactos sueltos fuera de models/
 *.pkl
 *.joblib
 *.h5

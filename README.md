@@ -16,6 +16,17 @@ El tablero consume las predicciones **a través de la API**, nunca cargando el a
 
 Los tres componentes se despliegan en contenedores Docker.
 
+### Stack
+
+| Componente | Herramienta |
+|---|---|
+| API de inferencia | FastAPI |
+| Tablero | Streamlit |
+| Modelos | scikit-learn |
+| Experimentos | MLflow |
+| Datos | DVC |
+| Despliegue | Docker + Docker Compose |
+
 ## Versionado
 
 | Sistema | Versiona |
@@ -59,17 +70,64 @@ La nota del curso es **individual** y se evalúa sobre los aportes reflejados en
 ## Estructura
 
 ```
-├── params.yaml           # hiperparametros y rutas (leidos por DVC)
-├── dvc.yaml              # pipeline: procesar -> features -> entrenar -> evaluar
-├── docker-compose.yml    # levanta api + tablero
-├── data/                 # DVC, no Git: raw/ interim/ processed/
-├── models/               # artefactos empaquetados (DVC)
-├── notebooks/            # exploracion; el codigo que sobrevive migra a src/
-├── src/                  # libreria compartida: data/ features/ models/
-├── api/                  # despliegue 1: sirve inferencias + Dockerfile
-├── dashboard/            # despliegue 2: consume la API + Dockerfile
+microproyecto-desarrollo-soluciones/
+├── README.md
+├── maia_pds_proy.pdf          # enunciado del curso
+├── pyproject.toml             # dependencias y config del paquete src/   [pendiente]
+├── params.yaml                # hiperparametros y rutas, leidos por DVC  [pendiente]
+├── dvc.yaml                   # definicion del pipeline reproducible     [pendiente]
+├── docker-compose.yml         # orquesta api + tablero                   [pendiente]
+│
+├── data/                      # versionado por DVC, NO por Git
+│   ├── raw/                   # datos originales, inmutables
+│   ├── interim/               # resultados intermedios del pipeline
+│   └── processed/             # insumo final del entrenamiento
+│
+├── models/                    # artefactos empaquetados (.pkl / .joblib), DVC
+│
+├── notebooks/                 # exploracion y analisis
+│
+├── src/                       # libreria compartida (paquete instalable)
+│   ├── data/                  # ingesta y limpieza
+│   ├── features/              # transformaciones y construccion de variables
+│   └── models/                # entrenamiento, evaluacion y empaquetado
+│
+├── api/                       # DESPLEGABLE 1 — FastAPI + Dockerfile
+├── dashboard/                 # DESPLEGABLE 2 — Streamlit + Dockerfile
 ├── tests/
-└── docs/                 # maqueta, reportes de entrega, soportes, manuales
+│
+└── docs/
+    ├── maqueta/               # mockup del prototipo y sus iteraciones (E1)
+    ├── entregas/              # reportes E1, E2, E3 (max 10 paginas c/u)
+    └── soportes/              # evidencias: capturas de MLflow, DVC, Git
+```
+
+Las carpetas existen; los archivos marcados `[pendiente]` se crean al montar el pipeline.
+
+### Reglas de la estructura
+
+Cuatro decisiones que conviene no romper:
+
+**`api/` y `dashboard/` viven en la raíz, no dentro de `src/`.** Cada uno es una unidad desplegable con su propio `Dockerfile` y su propio `requirements.txt`. Separarlos evita que la imagen del tablero arrastre `scikit-learn`, `mlflow` y demás dependencias de entrenamiento.
+
+**`src/` es librería, no despliegue.** Contiene los pipelines de procesamiento y entrenamiento que la Entrega 3 exige tener versionados en el repositorio. Nadie la ejecuta como servicio.
+
+**`dashboard/` no importa de `src/`.** Se comunica con la API únicamente por HTTP. Es la frontera que evalúa el enunciado, y la estructura la vuelve evidente: si el tablero necesita importar `src`, la arquitectura se rompió.
+
+**`data/` y `models/` están fuera de Git.** Los versiona DVC; en Git solo viajan los punteros `.dvc`. Por eso ambas carpetas aparecen en `.gitignore` con excepciones para `.gitkeep` y `*.dvc`.
+
+**`docs/soportes/` existe desde el día uno.** Los soportes son parte fundamental de cada entrega y su ausencia penaliza fuerte, así que se llenan sobre la marcha, no la víspera.
+
+### Flujo de datos
+
+```
+data/raw  →  src/data  →  data/interim  →  src/features  →  data/processed
+                                                                    ↓
+                                                              src/models
+                                                                    ↓
+                                              models/  →  api/  →  dashboard/
+                                                    ↑
+                                        MLflow registra cada experimento
 ```
 
 ## Entregas
