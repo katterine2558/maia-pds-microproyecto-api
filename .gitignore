@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+.python-version
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Datos: los versiona DVC, no Git.
+# Los .dvc y dvc.lock SI se versionan (ver excepciones abajo).
+data/
+!data/**/*.dvc
+!data/.gitignore
+
+# DVC
+/.dvc/cache
+/.dvc/tmp
+/.dvc/config.local
+
+# MLflow (los runs locales no van a Git)
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Modelos empaquetados (artefactos binarios)
+models/
+*.pkl
+*.joblib
+*.h5
+*.onnx
+
+# Configuracion local de asistentes (no se versiona)
+CLAUDE.md
+.claude/
+
+# Secretos y configuracion local
+.env
+.env.*
+!.env.example
+*.pem
+credentials.json
+
+# Logs y temporales
+*.log
+.cache/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# macOS / OneDrive
+.DS_Store
+Icon?
+._*
+.Trashes
