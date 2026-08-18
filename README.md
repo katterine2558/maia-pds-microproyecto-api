@@ -30,7 +30,9 @@ uv tool install "dvc[s3]"     # o: pip install "dvc[s3]"
 dvc pull
 ```
 
-Hoy `dvc pull` requiere credenciales de AWS en el perfil configurado en `.dvc/config.local`. Las credenciales **nunca** van al repositorio.
+Eso es todo: **no hacen falta credenciales**. El bucket tiene lectura pública, así que cualquiera que clone el repositorio se trae los datos.
+
+Para **escribir** (`dvc push`) sí se necesitan credenciales de AWS, configuradas en `.dvc/config.local` con `dvc remote modify --local storage profile <perfil>`. Ese archivo está en `.gitignore`: las credenciales **nunca** van al repositorio.
 
 ## Arquitectura
 
