@@ -1,0 +1,335 @@
+<title>Memoria de la Maqueta</title>
+
+<style>
+  :root {
+    --paper:  #FBFBF9;
+    --ink:    #1A1A18;
+    --ink-2:  #4A4A46;
+    --ink-3:  #8A8A83;
+    --rule:   #D8D8D2;
+    --rule-2: #EAEAE5;
+    --mark:   #0E6B60;
+    --warn:   #8A3A1E;
+
+    --serif: "Iowan Old Style", Georgia, "Times New Roman", ui-serif, serif;
+    --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:  #14150F;
+      --ink:    #E8E8E0;
+      --ink-2:  #ADADA3;
+      --ink-3:  #7A7A72;
+      --rule:   #33342C;
+      --rule-2: #24251F;
+      --mark:   #57BCAB;
+      --warn:   #D89170;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:  #14150F;
+    --ink:    #E8E8E0;
+    --ink-2:  #ADADA3;
+    --ink-3:  #7A7A72;
+    --rule:   #33342C;
+    --rule-2: #24251F;
+    --mark:   #57BCAB;
+    --warn:   #D89170;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    margin: 0;
+    padding: 0 28px 100px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sheet { max-width: 940px; margin: 0 auto; }
+
+  .front { padding: 72px 0 30px; border-bottom: 1px solid var(--ink); }
+  .docid {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-3);
+    display: flex; flex-wrap: wrap; gap: 6px 22px; margin-bottom: 26px;
+  }
+  h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(30px, 4.4vw, 45px); line-height: 1.1; margin: 0 0 20px; letter-spacing: -.012em; }
+  .q { font-size: 20px; line-height: 1.45; max-width: 60ch; margin: 0 0 22px; font-style: italic; color: var(--ink-2); }
+  .front dl { display: grid; grid-template-columns: max-content 1fr; gap: 3px 20px; margin: 0; font-size: 15px; }
+  .front dt { font-family: var(--mono); font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3); padding-top: 5px; }
+  .front dd { margin: 0; }
+
+  section { padding-top: 44px; }
+  .sh { display: grid; grid-template-columns: 52px 1fr; gap: 0 16px; align-items: baseline; border-bottom: 1px solid var(--rule); padding-bottom: 7px; margin-bottom: 18px; }
+  .sh .num { font-family: var(--mono); font-size: 13px; color: var(--ink-3); }
+  .sh h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.008em; }
+
+  .indent { padding-left: 68px; }
+  @media (max-width: 640px) { .indent { padding-left: 0; } .sh { grid-template-columns: 40px 1fr; } }
+
+  p { margin: 0 0 13px; max-width: 68ch; }
+  p:last-child { margin-bottom: 0; }
+  .lead { color: var(--ink-2); }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  .els { display: flex; flex-direction: column; }
+  .el { display: grid; grid-template-columns: 52px 1fr; gap: 0 16px; padding: 13px 0; border-bottom: 1px solid var(--rule-2); }
+  .el:last-child { border-bottom: none; }
+  .el .eid { font-family: var(--mono); font-size: 12px; color: var(--mark); padding-top: 3px; letter-spacing: .04em; }
+  .el h3 { font-family: var(--serif); font-size: 17px; font-weight: 600; margin: 0 0 3px; }
+  .el p { font-size: 15.5px; color: var(--ink-2); margin: 0; max-width: 66ch; }
+  .el .where { font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); display: block; margin-top: 5px; }
+  @media (max-width: 640px) { .el { grid-template-columns: 40px 1fr; } }
+
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; font-family: var(--serif); }
+  caption { text-align: left; font-family: var(--mono); font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3); padding-bottom: 9px; }
+  th { text-align: left; font-weight: 600; font-size: 13px; padding: 7px 14px 7px 0; border-bottom: 1px solid var(--ink); vertical-align: bottom; }
+  td { padding: 9px 14px 9px 0; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
+  td.id { font-family: var(--mono); font-size: 12px; color: var(--mark); white-space: nowrap; }
+  td.kind { font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+
+
+  figure { margin: 0; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 14px; color: var(--ink-3); margin-top: 12px; max-width: 66ch; }
+
+  .rule-note { border-left: 2px solid var(--warn); padding-left: 16px; margin: 20px 0 0; color: var(--warn); font-size: 15.5px; max-width: 62ch; }
+
+  code { font-family: var(--mono); font-size: .87em; }
+  a { color: var(--mark); text-underline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+
+</style>
+
+<div class="sheet">
+
+  <header class="front">
+    <div class="docid">
+      <span>Maqueta del tablero</span>
+      <span>Versión 1</span>
+      <span>17 ago 2026</span>
+    </div>
+    <h1>Memoria de la maqueta</h1>
+    <p class="q">¿Qué pacientes diabéticos van a reingresar al hospital dentro de los 30 días siguientes al alta?</p>
+    <dl>
+      <dt>Quién lo usa</dt><dd>Personal de enfermería de la unidad de gestión hospitalaria</dd>
+      <dt>Qué decide</dt><dd>A qué pacientes se les programa control tras el egreso</dd>
+      <dt>Cuándo</dt><dd>El día del alta, antes de que el paciente salga</dd>
+      <dt>Datos</dt><dd>UCI 296 · 99 343 egresos · tasa base 11,4 %</dd>
+      <dt>Pantallas</dt><dd><code>pantallas.html</code></dd>
+    </dl>
+  </header>
+
+  <section>
+    <div class="sh"><span class="num">§ 1</span><h2>Alcance</h2></div>
+    <div class="indent">
+      <p>El tablero estima la probabilidad de que un paciente diabético vuelva a ser hospitalizado dentro de los 30 días siguientes al alta, y ordena los egresos del día por esa probabilidad hasta donde alcance la capacidad de programar controles. Trabaja de dos maneras: sobre el listado completo del día y sobre un paciente consultado por aparte.</p>
+      <p>Se descartaron dos versiones más estrechas. Una que solo evaluara pacientes de a uno serviría para saber si este paciente reingresa, pero no para decidir a quién alcanza a cubrirse con el personal disponible, que es la decisión real. Una que solo trabajara por listado dejaría por fuera al paciente que no venía programado. Se hacen las dos porque, una vez existe el servicio de predicción, la consulta individual cuesta poco.</p>
+
+      <p style="margin-top:20px;"><strong>El formulario pide diez datos</strong>, no las 47 variables del conjunto: grupo de edad, tipo de ingreso, servicio que da el alta, días de estancia, número de diagnósticos, número de medicamentos, hospitalizaciones y urgencias del último año, resultado de hemoglobina glicosilada y si hubo cambio de medicación. El criterio del recorte es doble — que la variable aporte al modelo y que la enfermera pueda consultarla en la historia clínica sin salir de la sala.</p>
+      <p><strong>Cada predicción se explica</strong> mostrando qué factores la empujaron (<code>E9</code>), calculados con valores SHAP. Se escoge SHAP y no los coeficientes de un modelo lineal porque funciona sobre cualquier modelo: así la exigencia de explicar no obliga a renunciar de entrada a los modelos de árboles, que suelen rendir mejor en este problema.</p>
+      <p><strong>Etnia y aseguradora no entran al modelo.</strong> Se usan únicamente para revisar si el tablero detecta peor a unos grupos que a otros. Si entraran, podría terminar priorizando por aseguradora en vez de por riesgo clínico, y ese sesgo se volvería invisible detrás de una cifra.</p>
+
+      <p style="margin-top:20px;"><strong>Queda por fuera.</strong> No estima la causa del reingreso ni sugiere tratamiento. No se conecta a un sistema de información hospitalario: el listado de egresos entra como archivo. Y no reemplaza el criterio clínico — ordena una lista, no autoriza altas.</p>
+      <p><strong>Límite de los datos.</strong> Los registros provienen de 130 hospitales de Estados Unidos entre 1999 y 2008. Lo que se entrega es un prototipo metodológico; llevarlo a una institución colombiana exigiría reentrenar con datos propios.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><span class="num">§ 2</span><h2>Elementos</h2></div>
+    <div class="indent">
+      <p class="lead">Trece elementos, agrupados por pantalla. Los identificadores <code>E1</code>–<code>E13</code> se referencian en la tabla del § 4.</p>
+
+      <div class="els">
+        <div class="el">
+          <span class="eid">E1</span>
+          <div>
+            <h3>Capacidad declarada por quien usa el tablero</h3>
+            <p>La enfermera indica cuántos controles alcanza a programar ese día. El corte del listado se mueve con ese número en vez de quedar fijo en una probabilidad arbitraria. La restricción real del servicio entra al producto en lugar de quedar implícita.</p>
+            <span class="where">Pantalla 1 · Listado del día</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E2</span>
+          <div>
+            <h3>Orden por probabilidad estimada</h3>
+            <p>Solo el 11,4 % de los egresos termina en reingreso temprano. Un modelo que responda «sí o no» acierta el 88,6 % diciendo siempre que no, y no sirve de nada. Lo que le sirve a quien programa los controles es el orden.</p>
+            <span class="where">Pantalla 1 · Listado del día</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E3</span>
+          <div>
+            <h3>Línea de capacidad visible</h3>
+            <p>Muestra dónde queda el corte y quiénes se quedan por debajo. Vuelve visible una limitación que hoy nadie mide, y da un dato concreto para pedir más personal.</p>
+            <span class="where">Pantalla 1 · Listado del día</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E4</span>
+          <div>
+            <h3>Indicadores de cabecera</h3>
+            <p>Egresos del día, capacidad disponible, cobertura del riesgo y cuántos pacientes de riesgo alto quedan sin control. Permiten saber si la jornada es manejable antes de entrar a leer el listado.</p>
+            <span class="where">Pantalla 1 · Listado del día</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E5</span>
+          <div>
+            <h3>Columnas clínicas junto al puntaje</h3>
+            <p>Días de estancia, hospitalizaciones del último año y resultado de hemoglobina glicosilada acompañan la probabilidad. Sin ellas el listado exige creerle al modelo; con ellas la enfermera puede estar en desacuerdo con argumentos.</p>
+            <span class="where">Pantalla 1 · Listado del día</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E6</span>
+          <div>
+            <h3>Formulario con datos previos al egreso</h3>
+            <p>Ninguna casilla puede pedir información que solo se conoce después de que el paciente salió. Es lo que mantiene el modelo utilizable en el momento en que hay que decidir.</p>
+            <span class="where">Pantalla 2 · Consulta individual</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E7</span>
+          <div>
+            <h3>Probabilidad calibrada, no una etiqueta</h3>
+            <p>Se muestra el número junto a su banda de riesgo. Obliga a calibrar el modelo: si un 0,52 no significa que 52 de cada 100 pacientes parecidos reingresan, el tablero está informando mal.</p>
+            <p style="margin-top:7px;">Las bandas se anclan en la tasa general de reingreso, no en percentiles: <strong>bajo</strong> por debajo de 11,4 %, <strong>medio</strong> hasta el doble de esa cifra y <strong>alto</strong> de 22,8 % en adelante. Así la banda dice algo verificable —«este paciente está al doble de lo corriente»— y no se mueve cuando cambia la composición del listado del día.</p>
+            <span class="where">Pantalla 2 · Consulta individual</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E8</span>
+          <div>
+            <h3>Comparación contra el promedio</h3>
+            <p>Un 0,52 aislado no dice nada. Al lado del 11,4 % general sí: se ve que este paciente está más de cuatro veces por encima de lo corriente.</p>
+            <span class="where">Pantalla 2 · Consulta individual</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E9</span>
+          <div>
+            <h3>Factores que pesaron en el resultado</h3>
+            <p>Sin explicación nadie actúa sobre una cifra. Además orienta <em>qué</em> hacer: no se interviene igual un riesgo alto por hospitalizaciones repetidas que uno por no haber medido la hemoglobina glicosilada.</p>
+            <span class="where">Pantalla 2 · Consulta individual</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E10</span>
+          <div>
+            <h3>Reingreso según hospitalizaciones del último año</h3>
+            <p>Pasa de 8,6 % en quienes no estuvieron hospitalizados a 37,1 % en quienes lo estuvieron cinco veces o más. Es la relación más marcada de todo el conjunto y justifica que esas variables entren al modelo.</p>
+            <span class="where">Pantalla 3 · Panorama</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E11</span>
+          <div>
+            <h3>Reingreso según el servicio que da el alta</h3>
+            <p>Nefrología (16,1 %) dobla a cardiología (8,0 %). Indica en qué servicio conviene reforzar la continuidad del cuidado, una decisión que no necesita predecir a ningún paciente en particular.</p>
+            <span class="where">Pantalla 3 · Panorama</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E12</span>
+          <div>
+            <h3>Reingreso según grupo de edad</h3>
+            <p>Sube de manera sostenida a partir de los 50 años. El pico aparente entre los 20 y los 30 se apoya en 1 649 registros y conviene leerlo con reservas.</p>
+            <span class="where">Pantalla 3 · Panorama</span>
+          </div>
+        </div>
+        <div class="el">
+          <span class="eid">E13</span>
+          <div>
+            <h3>El panorama no depende del modelo</h3>
+            <p>Las tres gráficas se calculan sobre registros históricos, sin pasar por la predicción. El tablero conserva utilidad aunque el modelo se retire o quede desactualizado.</p>
+            <span class="where">Pantalla 3 · Panorama</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><span class="num">§ 3</span><h2>Arquitectura</h2></div>
+    <div class="indent">
+      <figure>
+        <svg viewBox="0 0 820 168" role="img" aria-label="El tablero llama por HTTP al servicio de predicción, que carga el modelo empaquetado al iniciar. Los tres corren en contenedores.">
+          <defs>
+            <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="var(--ink)"/>
+            </marker>
+          </defs>
+
+          <g stroke="var(--rule)" stroke-width="1" fill="none">
+            <rect x="8" y="30" width="212" height="86"/>
+            <rect x="304" y="30" width="212" height="86"/>
+            <rect x="600" y="30" width="212" height="86"/>
+          </g>
+
+          <g font-family="ui-monospace, Menlo, monospace" font-size="9.5" fill="var(--ink-3)" letter-spacing="1.2">
+            <text x="8" y="22">CONTENEDOR</text>
+            <text x="304" y="22">CONTENEDOR</text>
+            <text x="600" y="22">ARTEFACTO</text>
+          </g>
+
+          <g font-family="Iowan Old Style, Georgia, serif" font-size="19" fill="var(--ink)" text-anchor="middle">
+            <text x="114" y="70">Tablero</text>
+            <text x="410" y="70">API</text>
+            <text x="706" y="70">Modelo</text>
+          </g>
+          <g font-family="ui-monospace, Menlo, monospace" font-size="10.5" fill="var(--ink-3)" text-anchor="middle">
+            <text x="114" y="90">Streamlit · :8501</text>
+            <text x="410" y="90">FastAPI · :8000</text>
+            <text x="706" y="90">.pkl empaquetado</text>
+            <text x="706" y="106">versionado en DVC</text>
+          </g>
+
+          <line x1="222" y1="73" x2="296" y2="73" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#a)"/>
+          <line x1="518" y1="73" x2="592" y2="73" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#a)"/>
+          <g font-family="ui-monospace, Menlo, monospace" font-size="9.5" fill="var(--ink-2)" text-anchor="middle">
+            <text x="259" y="64">POST /predict</text>
+            <text x="555" y="64">carga al inicio</text>
+          </g>
+
+          <line x1="8" y1="144" x2="812" y2="144" stroke="var(--rule)"/>
+          <text x="8" y="162" font-family="ui-monospace, Menlo, monospace" font-size="10" fill="var(--ink-3)">tablero → API → modelo · sin atajos</text>
+        </svg>
+        <figcaption>Los tres componentes se despliegan en contenedores separados. El modelo se carga una sola vez al arrancar el servicio de predicción; no se reentrena mientras responde consultas.</figcaption>
+      </figure>
+      <p class="rule-note">El tablero obtiene las predicciones llamando al servicio, nunca cargando el modelo por su cuenta. Si el tablero abriera el archivo <code>.pkl</code> directamente, los dos componentes quedarían amarrados y dejaría de ser posible actualizar el modelo sin volver a desplegar el tablero.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><span class="num">§ 4</span><h2>Trazabilidad</h2></div>
+    <div class="indent">
+      <p class="lead">Qué parte de la decisión resuelve cada elemento. Un elemento que no aparezca en esta tabla no tiene razón de estar en el tablero.</p>
+      <div class="scroll">
+        <table>
+          <caption>Elementos contra la decisión que sostienen</caption>
+          <thead>
+            <tr><th>Id</th><th>Elemento</th><th>Qué resuelve</th><th>Tipo</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="id">E1–E3</td><td>Listado ordenado con corte por capacidad</td><td>¿A quién le programo control con el personal que tengo hoy?</td><td class="kind">Predictivo</td></tr>
+            <tr><td class="id">E4</td><td>Indicadores de cabecera</td><td>¿Cuánto del riesgo del día alcanzo a cubrir?</td><td class="kind">Mixto</td></tr>
+            <tr><td class="id">E5</td><td>Columnas clínicas</td><td>¿Por qué este paciente aparece de primero?</td><td class="kind">Mixto</td></tr>
+            <tr><td class="id">E6–E8</td><td>Formulario y probabilidad calibrada</td><td>¿Este paciente reingresa antes de 30 días?</td><td class="kind">Predictivo</td></tr>
+            <tr><td class="id">E9</td><td>Factores que pesaron</td><td>¿Sobre qué puedo intervenir antes de que salga?</td><td class="kind">Predictivo</td></tr>
+            <tr><td class="id">E10</td><td>Reingreso por hospitalizaciones previas</td><td>¿Qué antecedente anticipa el reingreso?</td><td class="kind">Descriptivo</td></tr>
+            <tr><td class="id">E11</td><td>Reingreso por servicio</td><td>¿Dónde refuerzo la continuidad del cuidado?</td><td class="kind">Descriptivo</td></tr>
+            <tr><td class="id">E12</td><td>Reingreso por grupo de edad</td><td>¿Qué población concentra el riesgo?</td><td class="kind">Descriptivo</td></tr>
+            <tr><td class="id">E13</td><td>Panorama independiente del modelo</td><td>¿Qué queda si el modelo deja de servir?</td><td class="kind">Descriptivo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
