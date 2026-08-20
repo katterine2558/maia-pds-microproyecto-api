@@ -126,6 +126,7 @@ microproyecto-desarrollo-soluciones/
 │
 └── docs/
     ├── guia-reporte.md        # que va en cada punto de los reportes de entrega
+    ├── diccionario-variables.md  # referencia de las 50 columnas (generado)
     ├── maqueta/               # mockup del prototipo y sus iteraciones (E1)
     ├── entregas/              # reportes E1, E2, E3 (max 10 paginas c/u)
     └── soportes/              # evidencias: capturas de MLflow, DVC, Git
