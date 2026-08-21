@@ -65,6 +65,9 @@ credentials.json
 htmlcov/
 .coverage
 
+# Archivos temporales de Office (Word deja un ~$ al abrir un documento)
+~$*
+
 # macOS / OneDrive
 .DS_Store
 Icon?
