@@ -1,0 +1,466 @@
+<title>Pantallas Reingreso 30d</title>
+
+<style>
+  :root {
+    --ground:   #EEF2F1;
+    --surface:  #FDFEFD;
+    --sidebar:  #12312D;
+    --side-ink: #C6D8D4;
+    --side-on:  #FFFFFF;
+    --panel:    #F4F7F6;
+    --ink:      #16302E;
+    --ink-2:    #4C625E;
+    --ink-3:    #7C918D;
+    --rule:     #DCE4E2;
+    --rule-2:   #EDF1F0;
+    --accent:   #0E6B60;
+    --accent-2: #E0EFEC;
+    --track:    #E6ECEA;
+
+    --alto-tx: #A32626;  --alto-bg: #FBE4E4;  --alto-dot: #d03b3b;
+    --med-tx:  #8A5A06;  --med-bg:  #FDF0D5;  --med-dot: #fab219;
+    --baj-tx:  #1F6B1F;  --baj-bg:  #DFF2DF;  --baj-dot: #0ca30c;
+
+    --f-disp: Georgia, "Iowan Old Style", ui-serif, serif;
+    --f-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --f-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0C1413;
+      --surface:  #16201E;
+      --sidebar:  #0A1918;
+      --side-ink: #8FA5A1;
+      --side-on:  #FFFFFF;
+      --panel:    #1C2725;
+      --ink:      #E2EAE7;
+      --ink-2:    #A0B2AE;
+      --ink-3:    #748783;
+      --rule:     #2B3937;
+      --rule-2:   #212D2B;
+      --accent:   #4FB3A3;
+      --accent-2: #1A312D;
+      --track:    #232F2D;
+
+      --alto-tx: #E88A8A;  --alto-bg: #3A1F1F;  --alto-dot: #d03b3b;
+      --med-tx:  #E8B95E;  --med-bg:  #33280F;  --med-dot: #fab219;
+      --baj-tx:  #6FCB6F;  --baj-bg:  #1B2E22;  --baj-dot: #0ca30c;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #0C1413;
+    --surface:  #16201E;
+    --sidebar:  #0A1918;
+    --side-ink: #8FA5A1;
+    --side-on:  #FFFFFF;
+    --panel:    #1C2725;
+    --ink:      #E2EAE7;
+    --ink-2:    #A0B2AE;
+    --ink-3:    #748783;
+    --rule:     #2B3937;
+    --rule-2:   #212D2B;
+    --accent:   #4FB3A3;
+    --accent-2: #1A312D;
+    --track:    #232F2D;
+
+    --alto-tx: #E88A8A;  --alto-bg: #3A1F1F;  --alto-dot: #d03b3b;
+    --med-tx:  #E8B95E;  --med-bg:  #33280F;  --med-dot: #fab219;
+    --baj-tx:  #6FCB6F;  --baj-bg:  #1B2E22;  --baj-dot: #0ca30c;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 20px 88px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+
+  h1,h2,h3,h4 { font-family: var(--f-disp); font-weight: 600; margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+
+  .eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ---------- encabezado del documento ---------- */
+  .doc-head { padding: 52px 0 12px; display: flex; flex-direction: column; gap: 12px; }
+  .doc-head h1 { font-size: clamp(27px, 3.6vw, 36px); line-height: 1.15; }
+  .doc-head p.sub { color: var(--ink-2); max-width: 70ch; }
+
+  .screen-label { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-top: 26px; }
+  .screen-label h2 { font-size: 20px; }
+  .screen-label span { font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-3); }
+
+  /* ---------- ventana de la app ---------- */
+  .app {
+    display: grid; grid-template-columns: 198px 1fr;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px -12px rgba(0,0,0,.18);
+  }
+  @media (max-width: 720px) { .app { grid-template-columns: 1fr; } .side { display: none; } }
+
+  /* ---------- barra lateral ---------- */
+  .side { background: var(--sidebar); color: var(--side-ink); padding: 18px 0; display: flex; flex-direction: column; gap: 22px; }
+  .brand { padding: 0 18px; display: flex; flex-direction: column; gap: 2px; }
+  .brand b { font-family: var(--f-disp); color: var(--side-on); font-size: 15px; font-weight: 600; }
+  .brand span { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .62; }
+
+  .nav { display: flex; flex-direction: column; gap: 1px; }
+  .nav a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 18px; font-size: 13.5px; color: var(--side-ink);
+    text-decoration: none; border-left: 3px solid transparent;
+  }
+  .nav a.on { background: rgba(255,255,255,.09); color: var(--side-on); border-left-color: var(--accent); font-weight: 600; }
+  .nav a:hover:not(.on) { background: rgba(255,255,255,.045); }
+  .ico { width: 15px; height: 15px; flex-shrink: 0; opacity: .85; }
+
+  .side-block { padding: 0 18px; display: flex; flex-direction: column; gap: 9px; }
+  .side-block .eyebrow { color: var(--side-ink); opacity: .6; font-size: 10px; }
+  .side-sel {
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.13);
+    border-radius: 4px; padding: 6px 9px; font-size: 12.5px; color: var(--side-on);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .side-foot { margin-top: auto; padding: 0 18px; font-family: var(--f-mono); font-size: 10.5px; opacity: .5; }
+
+  /* ---------- area principal ---------- */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar { padding: 16px 24px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .topbar h3 { font-size: 18px; }
+  .topbar .grow { flex: 1; }
+  .stamp { font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-3); }
+  .content { padding: 22px 24px 26px; display: flex; flex-direction: column; gap: 22px; }
+
+  /* ---------- fichas KPI ---------- */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(146px, 1fr)); gap: 12px; }
+  .kpi { background: var(--panel); border: 1px solid var(--rule-2); border-radius: 6px; padding: 13px 15px; display: flex; flex-direction: column; gap: 3px; }
+  .kpi .k-lab { font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .kpi .k-val { font-family: var(--f-disp); font-size: 27px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .kpi .k-sub { font-size: 11.5px; color: var(--ink-3); }
+  .kpi.flag { background: var(--alto-bg); border-color: transparent; }
+  .kpi.flag .k-val, .kpi.flag .k-lab, .kpi.flag .k-sub { color: var(--alto-tx); }
+
+  /* ---------- controles ---------- */
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .ctl { display: flex; flex-direction: column; gap: 4px; min-width: 132px; }
+  .ctl label { font-family: var(--f-mono); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
+  .sel, .inp {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 5px;
+    padding: 7px 10px; font-size: 13.5px; color: var(--ink);
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .sel::after { content: "▾"; color: var(--ink-3); font-size: 11px; }
+  .btn {
+    background: var(--accent); color: var(--surface); border: none; border-radius: 5px;
+    padding: 8px 18px; font-size: 13.5px; font-weight: 600; font-family: inherit; cursor: pointer;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  :root[data-theme="dark"] .btn { color: #0C1413; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn { color: #0C1413; } }
+
+  /* ---------- tabla ---------- */
+  .scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  thead th {
+    background: var(--panel); text-align: left; padding: 9px 14px;
+    font-family: var(--f-mono); font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 600; border-bottom: 1px solid var(--rule); white-space: nowrap;
+  }
+  tbody td { padding: 9px 14px; border-bottom: 1px solid var(--rule-2); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--accent-2); }
+  td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  td.rank { color: var(--ink-3); }
+  .cutrow td { padding: 0; }
+  .cutline { display: flex; align-items: center; gap: 10px; padding: 7px 14px; background: var(--accent-2); border-top: 1px dashed var(--accent); border-bottom: 1px dashed var(--accent); }
+  .cutline span { font-family: var(--f-mono); font-size: 10.5px; color: var(--accent); font-weight: 600; letter-spacing: .04em; }
+
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px 2px 7px; border-radius: 10px; font-size: 11.5px; font-weight: 600; }
+  .pill i { width: 6px; height: 6px; border-radius: 50%; display: block; }
+  .pill.a { background: var(--alto-bg); color: var(--alto-tx); } .pill.a i { background: var(--alto-dot); }
+  .pill.m { background: var(--med-bg);  color: var(--med-tx);  } .pill.m i { background: var(--med-dot); }
+  .pill.b { background: var(--baj-bg);  color: var(--baj-tx);  } .pill.b i { background: var(--baj-dot); }
+
+  /* ---------- formulario ---------- */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 13px; }
+  .two-col { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(0,1fr); gap: 22px; align-items: start; }
+  @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+  .result { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+  .result-top { background: var(--alto-bg); padding: 18px 20px; display: flex; align-items: center; gap: 18px; }
+  .big { font-family: var(--f-disp); font-size: 46px; line-height: 1; color: var(--alto-tx); font-variant-numeric: tabular-nums; }
+  .result-top .lab { display: flex; flex-direction: column; gap: 3px; }
+  .result-top .lab b { font-size: 13.5px; color: var(--alto-tx); }
+  .result-top .lab span { font-size: 12px; color: var(--alto-tx); opacity: .82; }
+  .result-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+  .factors { display: flex; flex-direction: column; gap: 9px; }
+  .fac { display: grid; grid-template-columns: 1fr 84px; gap: 12px; align-items: center; font-size: 13px; }
+  .fbar { height: 6px; background: var(--track); border-radius: 3px; overflow: hidden; }
+  .fbar i { display: block; height: 100%; background: var(--accent); border-radius: 0 3px 3px 0; }
+
+  /* ---------- graficas de barras ---------- */
+  .card { border: 1px solid var(--rule); border-radius: 6px; padding: 17px 19px 19px; display: flex; flex-direction: column; gap: 3px; }
+  .card h4 { font-size: 15.5px; }
+  .card .cap { font-size: 12.5px; color: var(--ink-2); margin-bottom: 13px; }
+  .chart { display: flex; flex-direction: column; gap: 2px; }
+  .bar-row { display: grid; grid-template-columns: 116px 1fr 50px; gap: 12px; align-items: center; padding: 3px 0; position: relative; }
+  .bar-row .cat { font-size: 12.5px; color: var(--ink-2); text-align: right; }
+  .plot { height: 17px; background: var(--track); border-radius: 2px; position: relative; }
+  .plot i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 2px 4px 4px 2px; display: block; }
+  .bar-row .v { font-family: var(--f-mono); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .bar-row:hover .plot i { filter: brightness(1.12); }
+  .bar-row .tip {
+    position: absolute; left: 128px; bottom: calc(100% - 2px); z-index: 5;
+    background: var(--ink); color: var(--surface); border-radius: 4px;
+    padding: 5px 9px; font-family: var(--f-mono); font-size: 11px; white-space: nowrap;
+    opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; pointer-events: none;
+  }
+  :root[data-theme="dark"] .bar-row .tip { color: #0C1413; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bar-row .tip { color: #0C1413; } }
+  .bar-row:hover .tip, .bar-row:focus-within .tip { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) { .bar-row .tip { transition: none; } }
+
+  .base-note { font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-3); margin-top: 10px; }
+
+  .foot { padding-top: 30px; border-top: 1px solid var(--rule); font-size: 13.5px; color: var(--ink-2); display: flex; flex-direction: column; gap: 8px; }
+  code { font-family: var(--f-mono); font-size: .92em; background: var(--panel); padding: 1px 5px; border-radius: 3px; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+
+  <header class="doc-head">
+    <p class="eyebrow">Maqueta · pantallas · Entrega 1</p>
+    <h1>Tablero de reingreso hospitalario</h1>
+    <p class="sub">Las tres pantallas del prototipo, a escala. Las cifras del panel de contexto son reales, calculadas sobre los 99 343 encuentros del dataset UCI 296 tras excluir fallecidos y hospicio. La justificación de cada elemento está en <code>memoria.html</code>.</p>
+  </header>
+
+  <!-- ============ PANTALLA 1 ============ -->
+  <div class="screen-label">
+    <h2>1 · Priorización de altas del día</h2>
+    <span>la pantalla que sostiene la decisión</span>
+  </div>
+
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><b>Reingreso 30d</b><span>Gestión hospitalaria</span></div>
+      <nav class="nav">
+        <a href="#" class="on"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12M2 8h12M2 12h7"/></svg>Priorización</a>
+        <a href="#"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="5.5" r="2.6"/><path d="M2.8 14c.5-2.7 2.6-4.2 5.2-4.2s4.7 1.5 5.2 4.2"/></svg>Paciente</a>
+        <a href="#"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.4 13.6V7m4.5 6.6V3.4m4.5 10.2V9"/></svg>Contexto</a>
+      </nav>
+      <div class="side-block">
+        <p class="eyebrow">Unidad</p>
+        <div class="side-sel">Hospital central <span>▾</span></div>
+      </div>
+      <div class="side-foot">v0.1 · maqueta</div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <h3>Egresos programados</h3>
+        <span class="grow"></span>
+        <span class="stamp">lunes 17 ago 2026 · 06:40</span>
+      </div>
+
+      <div class="content">
+        <div class="kpis">
+          <div class="kpi"><span class="k-lab">Egresos del día</span><span class="k-val">63</span><span class="k-sub">pacientes diabéticos</span></div>
+          <div class="kpi"><span class="k-lab">Capacidad</span><span class="k-val">20</span><span class="k-sub">seguimientos agendables</span></div>
+          <div class="kpi"><span class="k-lab">Cubre</span><span class="k-val">78 %</span><span class="k-sub">del riesgo estimado</span></div>
+          <div class="kpi flag"><span class="k-lab">Riesgo alto sin cubrir</span><span class="k-val">4</span><span class="k-sub">quedan bajo la línea</span></div>
+        </div>
+
+        <div class="controls">
+          <div class="ctl"><label>Fecha de alta</label><div class="sel">17 / 08 / 2026</div></div>
+          <div class="ctl"><label>Servicio</label><div class="sel">Todos</div></div>
+          <div class="ctl"><label>Capacidad de seguimiento</label><div class="sel">20 pacientes</div></div>
+          <button class="btn" type="button">Actualizar lista</button>
+        </div>
+
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Encuentro</th><th>Edad</th><th>Servicio</th><th>Estancia</th><th>Ingresos previos</th><th>A1C</th><th>Riesgo</th><th>Prob.</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="n rank">1</td><td class="n">ENC-8271</td><td>[70-80)</td><td>Nephrology</td><td class="n">9 d</td><td class="n">5</td><td>No medido</td><td><span class="pill a"><i></i>Alto</span></td><td class="n">0,52</td></tr>
+              <tr><td class="n rank">2</td><td class="n">ENC-4410</td><td>[80-90)</td><td>InternalMedicine</td><td class="n">12 d</td><td class="n">4</td><td>&gt;8</td><td><span class="pill a"><i></i>Alto</span></td><td class="n">0,44</td></tr>
+              <tr><td class="n rank">3</td><td class="n">ENC-1938</td><td>[60-70)</td><td>Emergency/Trauma</td><td class="n">6 d</td><td class="n">3</td><td>No medido</td><td><span class="pill a"><i></i>Alto</span></td><td class="n">0,38</td></tr>
+              <tr><td class="n rank">4</td><td class="n">ENC-6104</td><td>[70-80)</td><td>Nephrology</td><td class="n">7 d</td><td class="n">3</td><td>Norm</td><td><span class="pill a"><i></i>Alto</span></td><td class="n">0,34</td></tr>
+              <tr><td class="n rank">19</td><td class="n">ENC-2286</td><td>[50-60)</td><td>InternalMedicine</td><td class="n">5 d</td><td class="n">1</td><td>&gt;7</td><td><span class="pill m"><i></i>Medio</span></td><td class="n">0,21</td></tr>
+              <tr><td class="n rank">20</td><td class="n">ENC-7702</td><td>[60-70)</td><td>Family/General</td><td class="n">4 d</td><td class="n">1</td><td>No medido</td><td><span class="pill m"><i></i>Medio</span></td><td class="n">0,19</td></tr>
+              <tr class="cutrow"><td colspan="9"><div class="cutline"><span>LÍNEA DE CAPACIDAD — 20 de 63 · debajo no alcanza el recurso de hoy</span></div></td></tr>
+              <tr><td class="n rank">21</td><td class="n">ENC-3355</td><td>[70-80)</td><td>Nephrology</td><td class="n">6 d</td><td class="n">2</td><td>No medido</td><td><span class="pill m"><i></i>Medio</span></td><td class="n">0,18</td></tr>
+              <tr><td class="n rank">22</td><td class="n">ENC-9017</td><td>[50-60)</td><td>Cardiology</td><td class="n">3 d</td><td class="n">0</td><td>Norm</td><td><span class="pill b"><i></i>Bajo</span></td><td class="n">0,07</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PANTALLA 2 ============ -->
+  <div class="screen-label">
+    <h2>2 · Evaluación de un paciente</h2>
+    <span>consume la API por HTTP; nunca carga el modelo</span>
+  </div>
+
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><b>Reingreso 30d</b><span>Gestión hospitalaria</span></div>
+      <nav class="nav">
+        <a href="#"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12M2 8h12M2 12h7"/></svg>Priorización</a>
+        <a href="#" class="on"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="5.5" r="2.6"/><path d="M2.8 14c.5-2.7 2.6-4.2 5.2-4.2s4.7 1.5 5.2 4.2"/></svg>Paciente</a>
+        <a href="#"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.4 13.6V7m4.5 6.6V3.4m4.5 10.2V9"/></svg>Contexto</a>
+      </nav>
+      <div class="side-block">
+        <p class="eyebrow">Unidad</p>
+        <div class="side-sel">Hospital central <span>▾</span></div>
+      </div>
+      <div class="side-foot">v0.1 · maqueta</div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <h3>Evaluar paciente</h3>
+        <span class="grow"></span>
+        <span class="stamp">POST /predict · 142 ms</span>
+      </div>
+
+      <div class="content">
+        <div class="two-col">
+          <div style="display:flex; flex-direction:column; gap:15px;">
+            <div class="form-grid">
+              <div class="ctl"><label>Rango de edad</label><div class="sel">[70-80)</div></div>
+              <div class="ctl"><label>Tipo de admisión</label><div class="sel">Emergency</div></div>
+              <div class="ctl"><label>Servicio que da el alta</label><div class="sel">Nephrology</div></div>
+              <div class="ctl"><label>Días de estancia</label><div class="inp">9</div></div>
+              <div class="ctl"><label>N.º de diagnósticos</label><div class="inp">9</div></div>
+              <div class="ctl"><label>N.º de medicamentos</label><div class="inp">21</div></div>
+              <div class="ctl"><label>Ingresos previos (1 año)</label><div class="inp">5</div></div>
+              <div class="ctl"><label>Urgencias previas (1 año)</label><div class="inp">2</div></div>
+              <div class="ctl"><label>Resultado de A1C</label><div class="sel">No medido</div></div>
+              <div class="ctl"><label>Cambio de medicación</label><div class="sel">Sí</div></div>
+            </div>
+            <button class="btn" type="button" style="align-self:flex-start;">Calcular riesgo</button>
+          </div>
+
+          <div class="result">
+            <div class="result-top">
+              <span class="big">0,52</span>
+              <span class="lab">
+                <b>Riesgo alto</b>
+                <span>probabilidad de reingreso &lt; 30 días</span>
+                <span>cohorte comparable: 11,4 %</span>
+              </span>
+            </div>
+            <div class="result-body">
+              <p class="eyebrow">Qué pesó en esta estimación</p>
+              <div class="factors">
+                <div class="fac"><span>5 ingresos previos en el último año</span><div class="fbar"><i style="width:100%"></i></div></div>
+                <div class="fac"><span>Estancia de 9 días</span><div class="fbar"><i style="width:58%"></i></div></div>
+                <div class="fac"><span>A1C no medida en el episodio</span><div class="fbar"><i style="width:41%"></i></div></div>
+                <div class="fac"><span>9 diagnósticos registrados</span><div class="fbar"><i style="width:33%"></i></div></div>
+                <div class="fac"><span>Alta desde nefrología</span><div class="fbar"><i style="width:26%"></i></div></div>
+              </div>
+              <p class="base-note">La probabilidad se muestra calibrada. Un valor sin calibrar induce a error al usuario clínico.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PANTALLA 3 ============ -->
+  <div class="screen-label">
+    <h2>3 · Contexto</h2>
+    <span>el componente descriptivo que exige el enunciado</span>
+  </div>
+
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><b>Reingreso 30d</b><span>Gestión hospitalaria</span></div>
+      <nav class="nav">
+        <a href="#"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12M2 8h12M2 12h7"/></svg>Priorización</a>
+        <a href="#"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="5.5" r="2.6"/><path d="M2.8 14c.5-2.7 2.6-4.2 5.2-4.2s4.7 1.5 5.2 4.2"/></svg>Paciente</a>
+        <a href="#" class="on"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.4 13.6V7m4.5 6.6V3.4m4.5 10.2V9"/></svg>Contexto</a>
+      </nav>
+      <div class="side-block">
+        <p class="eyebrow">Periodo</p>
+        <div class="side-sel">Histórico completo <span>▾</span></div>
+      </div>
+      <div class="side-foot">v0.1 · maqueta</div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <h3>Dónde se concentra el riesgo</h3>
+        <span class="grow"></span>
+        <span class="stamp">99 343 encuentros · tasa base 11,4 %</span>
+      </div>
+
+      <div class="content">
+        <div class="card">
+          <h4>Tasa de reingreso &lt; 30 días según ingresos previos</h4>
+          <p class="cap">El gradiente más fuerte del dataset: 4,3× entre los extremos. Es el predictor que más manda.</p>
+          <div class="chart">
+            <div class="bar-row" tabindex="0"><span class="cat">Ninguno</span><div class="plot"><i style="width:23.2%"></i></div><span class="v">8,6 %</span><span class="tip">66 245 encuentros · 8,59 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">1 ingreso</span><div class="plot"><i style="width:35.7%"></i></div><span class="v">13,3 %</span><span class="tip">18 984 encuentros · 13,25 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">2 ingresos</span><div class="plot"><i style="width:48.3%"></i></div><span class="v">17,9 %</span><span class="tip">7 300 encuentros · 17,93 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">3 ingresos</span><div class="plot"><i style="width:56.6%"></i></div><span class="v">21,0 %</span><span class="tip">3 271 encuentros · 21,03 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">4 ingresos</span><div class="plot"><i style="width:65.0%"></i></div><span class="v">24,1 %</span><span class="tip">1 574 encuentros · 24,14 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">5 o más</span><div class="plot"><i style="width:100%"></i></div><span class="v">37,1 %</span><span class="tip">1 969 encuentros · 37,13 %</span></div>
+          </div>
+          <p class="base-note">Eje: 0 – 37,1 %. Línea base del conjunto: 11,4 %.</p>
+        </div>
+
+        <div class="card">
+          <h4>Tasa por especialidad que da el alta</h4>
+          <p class="cap">Nefrología duplica a cardiología. Señala en qué servicio reforzar la continuidad del cuidado.</p>
+          <div class="chart">
+            <div class="bar-row" tabindex="0"><span class="cat">Nephrology</span><div class="plot"><i style="width:100%"></i></div><span class="v">16,1 %</span><span class="tip">1 539 encuentros · 16,11 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">Family/General</span><div class="plot"><i style="width:75.2%"></i></div><span class="v">12,1 %</span><span class="tip">7 252 encuentros · 12,12 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">InternalMedicine</span><div class="plot"><i style="width:71.6%"></i></div><span class="v">11,5 %</span><span class="tip">14 237 encuentros · 11,53 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">Emergency/Trauma</span><div class="plot"><i style="width:70.7%"></i></div><span class="v">11,4 %</span><span class="tip">7 419 encuentros · 11,39 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">Surgery-General</span><div class="plot"><i style="width:69.4%"></i></div><span class="v">11,2 %</span><span class="tip">3 059 encuentros · 11,18 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">Orthopedics</span><div class="plot"><i style="width:67.3%"></i></div><span class="v">10,9 %</span><span class="tip">1 392 encuentros · 10,85 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">Cardiology</span><div class="plot"><i style="width:49.8%"></i></div><span class="v">8,0 %</span><span class="tip">5 279 encuentros · 8,03 %</span></div>
+          </div>
+          <p class="base-note">Eje: 0 – 16,1 %. Siete especialidades de mayor volumen.</p>
+        </div>
+
+        <div class="card">
+          <h4>Tasa por rango de edad</h4>
+          <p class="cap">Sube de forma sostenida a partir de los 50. El pico de [20-30) descansa sobre pocos casos.</p>
+          <div class="chart">
+            <div class="bar-row" tabindex="0"><span class="cat">[20-30)</span><div class="plot"><i style="width:100%"></i></div><span class="v">14,3 %</span><span class="tip">1 649 encuentros · 14,31 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">[40-50)</span><div class="plot"><i style="width:74.5%"></i></div><span class="v">10,7 %</span><span class="tip">9 607 encuentros · 10,66 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">[50-60)</span><div class="plot"><i style="width:68.3%"></i></div><span class="v">9,8 %</span><span class="tip">17 060 encuentros · 9,77 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">[60-70)</span><div class="plot"><i style="width:79.0%"></i></div><span class="v">11,3 %</span><span class="tip">22 059 encuentros · 11,30 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">[70-80)</span><div class="plot"><i style="width:84.3%"></i></div><span class="v">12,1 %</span><span class="tip">25 331 encuentros · 12,06 %</span></div>
+            <div class="bar-row" tabindex="0"><span class="cat">[80-90)</span><div class="plot"><i style="width:87.8%"></i></div><span class="v">12,6 %</span><span class="tip">16 434 encuentros · 12,57 %</span></div>
+          </div>
+          <p class="base-note">Eje: 0 – 14,3 %. Pase el cursor sobre una barra para ver el volumen.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <p><b>Cifras.</b> Las tasas del panel de contexto salen de <code>data/raw/diabetic_data.csv</code>, excluyendo los 2 423 encuentros con egreso por fallecimiento u hospicio, que por construcción no pueden reingresar. Los datos de las pantallas 1 y 2 son ilustrativos.</p>
+    <p><b>Estado.</b> Versión 1 de la maqueta. Las decisiones abiertas — alcance, cortes de las bandas de riesgo, tratamiento de <code>race</code> y <code>payer_code</code> — están listadas en <code>memoria.html</code>.</p>
+  </div>
+
+</div>

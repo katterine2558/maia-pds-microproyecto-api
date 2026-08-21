@@ -1,0 +1,5 @@
+[core]
+    remote = storage
+['remote "storage"']
+    url = s3://maia-pds-diabetes-dvc
+    allow_anonymous_login = true

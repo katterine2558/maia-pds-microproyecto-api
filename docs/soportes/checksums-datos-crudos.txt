@@ -1,0 +1,15 @@
+# Diabetes 130-US Hospitals for Years 1999-2008
+# Fuente:    UCI Machine Learning Repository (dataset 296)
+# Pagina:    https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008
+# Descarga:  https://archive.ics.uci.edu/static/public/296/diabetes+130-us+hospitals+for+years+1999-2008.zip
+# Licencia:  CC BY 4.0
+# Cita:      Strack et al. (2014), BioMed Research International, 2014:781670
+#
+# El zip de UCI trae el mapa de codigos como IDS_mapping.csv; en el repositorio
+# se guarda como IDs_mapping.csv. El contenido es identico, solo cambia el nombre.
+#
+# Generado por src/data/checksums.py el 2026-08-19.
+# Verificar:  shasum -a 256 -c docs/soportes/checksums-datos-crudos.txt
+#
+f1bb82b471cb34649352597572c9b1fb00bd27f77b9f5a22a03dc3eb1039749e  data/raw/IDs_mapping.csv
+0689e7ec031237dc63031b938805c48377748761a3b26acab621567afa24df97  data/raw/diabetic_data.csv

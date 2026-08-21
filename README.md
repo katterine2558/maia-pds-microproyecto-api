@@ -4,7 +4,35 @@ Producto de datos desplegado: modelo supervisado empaquetado, API de inferencia 
 
 Maestría en Inteligencia Artificial (MAIA) — Universidad de los Andes.
 
-> **Pendiente:** problema, pregunta de negocio y conjuntos de datos. Documentar aquí al definirlos.
+## Problema
+
+**¿Qué pacientes diabéticos van a reingresar al hospital dentro de los 30 días siguientes al alta?**
+
+El reingreso temprano es un indicador de calidad asistencial y una fuente de costo evitable. El equipo de gestión del alta puede intervenir — agendar control, ajustar medicación, activar enfermería domiciliaria — pero solo alcanza a hacerlo con una fracción de los pacientes.
+
+La decisión que cambia con la predicción: **a quién se le agenda seguimiento antes de que salga del hospital**, cuando la capacidad de seguimiento es limitada.
+
+## Datos
+
+[Diabetes 130-US Hospitals for Years 1999-2008](https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008) (UCI, CC BY 4.0). 101 766 encuentros hospitalarios × 50 columnas.
+
+| | |
+|---|---|
+| Unidad de análisis | un encuentro hospitalario (no un paciente: hay 71 518 pacientes únicos) |
+| Variable objetivo | `readmitted`, binarizada a `<30` vs. resto — 11,16 % positivos |
+| Versionado | DVC, puntero en `data/raw.dvc` |
+| Remoto | `s3://maia-pds-diabetes-dvc` (AWS Academy, us-east-1) |
+
+### Traerse los datos
+
+```bash
+uv tool install "dvc[s3]"     # o: pip install "dvc[s3]"
+dvc pull
+```
+
+Eso es todo: **no hacen falta credenciales**. El bucket tiene lectura pública, así que cualquiera que clone el repositorio se trae los datos.
+
+Para **escribir** (`dvc push`) sí se necesitan credenciales de AWS, configuradas en `.dvc/config.local` con `dvc remote modify --local storage profile <perfil>`. Ese archivo está en `.gitignore`: las credenciales **nunca** van al repositorio.
 
 ## Arquitectura
 
@@ -97,7 +125,8 @@ microproyecto-desarrollo-soluciones/
 ├── tests/
 │
 └── docs/
-    ├── candidatos/            # problemas y datasets evaluados (S1-S2)
+    ├── guia-reporte.md        # que va en cada punto de los reportes de entrega
+    ├── diccionario-variables.md  # referencia de las 50 columnas (generado)
     ├── maqueta/               # mockup del prototipo y sus iteraciones (E1)
     ├── entregas/              # reportes E1, E2, E3 (max 10 paginas c/u)
     └── soportes/              # evidencias: capturas de MLflow, DVC, Git
