@@ -21,7 +21,7 @@ La decisión que cambia con la predicción: **a quién se le agenda seguimiento 
 | Unidad de análisis | un encuentro hospitalario (no un paciente: hay 71 518 pacientes únicos) |
 | Variable objetivo | `readmitted`, binarizada a `<30` vs. resto — 11,16 % positivos |
 | Versionado | DVC, puntero en `data/raw.dvc` |
-| Remoto | `s3://maia-pds-diabetes-dvc` (AWS Academy, us-east-1) |
+| Remoto | `s3://maia-pds-diabetes-dvc-982005835034` (us-east-1) |
 
 ### Traerse los datos
 
@@ -32,7 +32,23 @@ dvc pull
 
 Eso es todo: **no hacen falta credenciales**. El bucket tiene lectura pública, así que cualquiera que clone el repositorio se trae los datos.
 
-Para **escribir** (`dvc push`) sí se necesitan credenciales de AWS, configuradas en `.dvc/config.local` con `dvc remote modify --local storage profile <perfil>`. Ese archivo está en `.gitignore`: las credenciales **nunca** van al repositorio.
+Para **escribir** (`dvc push`) sí se necesitan credenciales. El equipo usa un usuario
+de AWS dedicado, `maia-pds-dvc`, con permisos acotados a este único bucket: puede leer,
+escribir y listar, y nada más. No puede borrar objetos ni tocar ningún otro recurso de
+la cuenta.
+
+Las llaves se comparten **por fuera del repositorio** — gestor de contraseñas o mensaje
+directo. Una vez que las tengas:
+
+```bash
+aws configure --profile maia-pds        # pega las llaves aquí
+dvc remote modify --local storage profile maia-pds
+```
+
+`.dvc/config.local` está en `.gitignore`. Las credenciales **nunca** van al repositorio:
+ni en un `.env`, ni como secreto de GitHub, ni en el historial. Un secreto commiteado
+queda en el historial para siempre y limpiarlo obliga a reescribir la historia, que es
+justo lo que borraría la autoría que se califica.
 
 ## Arquitectura
 

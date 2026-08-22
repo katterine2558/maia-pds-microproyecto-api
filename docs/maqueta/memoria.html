@@ -300,9 +300,9 @@
           <line x1="8" y1="144" x2="812" y2="144" stroke="var(--rule)"/>
           <text x="8" y="162" font-family="ui-monospace, Menlo, monospace" font-size="10" fill="var(--ink-3)">tablero → API → modelo · sin atajos</text>
         </svg>
-        <figcaption>Los tres componentes se despliegan en contenedores separados. El modelo se carga una sola vez al arrancar el servicio de predicción; no se reentrena mientras responde consultas.</figcaption>
+        <figcaption>El modelo se carga una sola vez al arrancar el servicio de predicción; no se reentrena mientras responde consultas.</figcaption>
       </figure>
-      <p class="rule-note">El tablero obtiene las predicciones llamando al servicio, nunca cargando el modelo por su cuenta. Si el tablero abriera el archivo <code>.pkl</code> directamente, los dos componentes quedarían amarrados y dejaría de ser posible actualizar el modelo sin volver a desplegar el tablero.</p>
+      <p class="rule-note">El razonamiento detrás de esta frontera está en el reporte, §7. Aquí solo queda el diagrama, que es la fuente de la figura que ese reporte reproduce.</p>
     </div>
   </section>
 
