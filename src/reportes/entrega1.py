@@ -298,8 +298,12 @@ def parte_repos(doc, g):
                    "registra un solo autor. La nota es individual y se sustenta en los commits, así "
                    "que antes del envío cada integrante debe tener commits propios. Regenerar este "
                    "documento después para que la salida del comando lo refleje.")
-    pendiente(doc, "PENDIENTE — el repositorio está en modo privado. Hay que darle acceso al equipo "
-                   "de tutores o hacerlo público; si no, este punto no se puede verificar.")
+    p(doc, "El repositorio es público, de modo que el equipo de tutores puede revisar el código, "
+           "el historial y las ramas sin solicitar acceso. Los cuatro integrantes figuran como "
+           "colaboradores con permiso de escritura e integran su trabajo mediante merges directos "
+           "a develop; cualquier persona ajena al equipo solo puede proponer cambios vía fork y "
+           "pull request, que es el comportamiento por defecto de GitHub y no requiere reglas de "
+           "protección de rama.")
 
     doc.add_heading("5. Repositorio DVC en uso para los datos", level=1)
     p(doc, f"Los datos se versionan con DVC sobre el mismo repositorio de Git. En Git viaja "
