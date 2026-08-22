@@ -30,7 +30,12 @@ SALIDA = RAIZ / "docs" / "entregas" / "Entrega-1-reporte.docx"
 
 REPO = "https://github.com/katterine2558/microproyecto-desarrollo-soluciones"
 DATASET = "https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008"
-REMOTO_DVC = "s3://maia-pds-diabetes-dvc"
+REMOTO_DVC = "s3://maia-pds-diabetes-dvc-982005835034"
+
+# Todo soporte se cita con su URL. Los archivos del repositorio se enlazan a main,
+# que es la rama donde queda el estado entregado.
+BLOB = f"{REPO}/blob/main"
+TREE = f"{REPO}/tree/main"
 
 TINTA = RGBColor(0x1A, 0x1A, 0x1A)
 TINTA_2 = RGBColor(0x59, 0x59, 0x59)
@@ -184,7 +189,9 @@ def construir() -> Document:
     p(doc, "Entrega 1 · Micro-proyecto · Desarrollo de Soluciones · MAIA, Universidad de los Andes",
       size=10, color=TINTA_2, alineacion=WD_ALIGN_PARAGRAPH.LEFT)
     p(doc, f"Repositorio: {REPO}", size=9.5, color=ACENTO, alineacion=WD_ALIGN_PARAGRAPH.LEFT)
-    pendiente(doc, "PENDIENTE — integrantes del equipo (nombres y códigos). Va aquí, en una sola línea.")
+    p(doc, "Camilo Andrés Rodríguez Dueñas · Jasbyn Rainier Solano Carrillo · "
+           "Leonardo Almanza Sánchez · Gineth Katerine Arias Carrillo",
+      size=10, color=TINTA_2, alineacion=WD_ALIGN_PARAGRAPH.LEFT)
 
     # ---- 1
     doc.add_heading("1. Problema y su contexto", level=1)
@@ -453,11 +460,17 @@ def parte_equipo(doc):
 
     doc.add_heading("Soportes adjuntos", level=1)
     for s in [
-        f"Repositorio: {REPO} (código, historial de commits y ramas)",
-        "Diccionario completo de las 50 variables: docs/diccionario-variables.md",
-        "Huellas SHA-256 y URL de descarga: docs/soportes/checksums-datos-crudos.txt",
-        "Maqueta navegable: docs/maqueta/pantallas.html y docs/maqueta/memoria.html",
-        "Figuras de la exploración en resolución completa: docs/entregas/figuras/",
+        f"Repositorio, con el historial de commits y las ramas: {REPO}",
+        f"Conjunto de datos original, UCI 296, licencia CC BY 4.0: {DATASET}",
+        f"Remoto DVC de los datos, lectura pública: {REMOTO_DVC}",
+        f"Notebook de exploración, nueve secciones ejecutadas: {BLOB}/notebooks/eda.ipynb",
+        f"Diccionario de las 50 variables: {BLOB}/docs/diccionario-variables.md",
+        f"Huellas SHA-256 y URL de descarga de los datos: "
+        f"{BLOB}/docs/soportes/checksums-datos-crudos.txt",
+        f"Maqueta, pantallas: {BLOB}/docs/maqueta/pantallas.html",
+        f"Maqueta, memoria de los trece elementos: {BLOB}/docs/maqueta/memoria.html",
+        f"Figuras en resolución completa: {TREE}/docs/entregas/figuras",
+        f"Política IAM del remoto de datos: {BLOB}/docs/soportes/politica-iam-dvc.json",
     ]:
         vineta(doc, s)
 
