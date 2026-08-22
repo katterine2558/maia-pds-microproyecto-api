@@ -233,13 +233,17 @@ def render(c: pd.DataFrame, perfil: dict, mapas: dict) -> str:
     obj = c["readmitted"]
 
     n_fall = int(col.isin(fallecido).sum())
+    # Para fallecidos se cuenta cualquier reingreso: la afirmacion es mas fuerte asi.
     r_fall = int(((col.isin(fallecido)) & (obj != "NO")).sum())
     n_hosp = int(col.isin(hospicio).sum())
-    r_hosp = int(((col.isin(hospicio)) & (obj != "NO")).sum())
+    # Para hospicio se cuenta solo el reingreso temprano, que es la variable objetivo.
+    r_hosp = int(((col.isin(hospicio)) & (obj == "<30")).sum())
 
     A(f"- **Fallecidos** (11, 19, 20, 21): {mil(n_fall)} filas. No pueden reingresar, y los datos lo")
-    A(f"  confirman: {r_fall} reingresos registrados. Excluirlos es corregir un imposible.")
-    A(f"- **Hospicio** (13, 14): {mil(n_hosp)} filas. Estos si reingresan — hay {r_hosp} casos.")
+    A(f"  confirman: {r_fall} reingresos registrados, ni antes ni despues de los 30 dias.")
+    A(f"  Excluirlos es corregir un imposible.")
+    A(f"- **Hospicio** (13, 14): {mil(n_hosp)} filas. Estos si reingresan: {r_hosp} lo hacen antes")
+    A(f"  de los 30 dias.")
     A("  Se excluyen por alcance, no por imposibilidad: son pacientes en cuidado de fin de")
     A("  vida, donde agendar un control para evitar el reingreso no es la intervencion que")
     A("  decide el tablero.")

@@ -5,7 +5,7 @@ no adivinar entre 50 columnas mientras se explora y se modela.
 
 Dataset: *Diabetes 130-US Hospitals for Years 1999-2008* (UCI 296) — 101 766 filas x 50 columnas.
 
-Generado por `src/data/diccionario.py` el 2026-08-19. Para regenerarlo:
+Generado por `src/data/diccionario.py` el 2026-08-21. Para regenerarlo:
 
 ```bash
 python -m src.data.diccionario
@@ -117,8 +117,10 @@ De `IDs_mapping.csv`. Sin esto las tres columnas de arriba son numeros sueltos.
 La marca ⛔ senala los destinos que se excluyen, por dos razones **distintas**:
 
 - **Fallecidos** (11, 19, 20, 21): 1 652 filas. No pueden reingresar, y los datos lo
-  confirman: 0 reingresos registrados. Excluirlos es corregir un imposible.
-- **Hospicio** (13, 14): 771 filas. Estos si reingresan — hay 86 casos.
+  confirman: 0 reingresos registrados, ni antes ni despues de los 30 dias.
+  Excluirlos es corregir un imposible.
+- **Hospicio** (13, 14): 771 filas. Estos si reingresan: 43 lo hacen antes
+  de los 30 dias.
   Se excluyen por alcance, no por imposibilidad: son pacientes en cuidado de fin de
   vida, donde agendar un control para evitar el reingreso no es la intervencion que
   decide el tablero.

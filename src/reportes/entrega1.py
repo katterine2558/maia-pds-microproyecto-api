@@ -351,7 +351,8 @@ def parte_exploracion(doc):
     p(doc, "El destino al egreso identifica encuentros que no deben entrar al análisis, por razones "
            "que conviene no confundir. Los 1 652 encuentros de pacientes fallecidos no pueden "
            "reingresar, y los datos lo confirman: ninguno registra reingreso. Excluirlos corrige un "
-           "imposible. Los 771 con egreso a hospicio sí reingresan —hay 86 casos— y se excluyen por "
+           "imposible. Los 771 con egreso a hospicio sí reingresan —43 lo hacen antes de los 30 "
+           "días— y se excluyen por "
            "una razón distinta: son pacientes en cuidado de fin de vida, donde agendar un control "
            "para evitar el reingreso no es la intervención que el tablero decide.")
     p(doc, "En conjunto salen 2 423 encuentros, el 2,38 %. La base de trabajo queda en **99 343 "
