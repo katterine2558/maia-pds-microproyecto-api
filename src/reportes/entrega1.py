@@ -480,7 +480,8 @@ def parte_equipo(doc):
            ["Exploración de los datos", "Gineth Katerine Arias Carrillo"],
            ["Maqueta del prototipo", "Gineth Katerine Arias Carrillo, Jasbyn Rainier Solano Carrillo"],
            ["Repositorios creados", "Gineth Katerine Arias Carrillo"],
-           ["Revisión y ajuste del reporte", "Camilo Rodríguez Dueñas"]],
+           ["Revisión y ajuste del reporte", "Camilo Rodríguez Dueñas"],
+           ["Propuesta diseño arquitectura infraestructura", "Jasbyn Rainier Solano Carrillo"]],
           anchos=[10.5, 6.1])
 
     doc.add_heading("9. Referencias", level=1)
@@ -510,6 +511,7 @@ def parte_equipo(doc):
         f"Maqueta, memoria de los trece elementos: {BLOB}/docs/maqueta/memoria.html",
         f"Figuras en resolución completa: {TREE}/docs/entregas/figuras",
         f"Política IAM del remoto de datos: {BLOB}/docs/soportes/politica-iam-dvc.json",
+        f"Propuesta diseño arquitectura infraestructura: {BLOB}/docs/soportes/arquitectura/INFRA-V-0.0.1.md",
     ]:
         vineta(doc, s)
 
