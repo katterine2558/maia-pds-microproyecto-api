@@ -26,7 +26,7 @@ RAIZ = Path(__file__).resolve().parents[2]
 FIGURAS = RAIZ / "docs" / "entregas" / "figuras"
 SALIDA = RAIZ / "docs" / "entregas" / "Entrega-1-reporte.docx"
 
-REPO = "https://github.com/katterine2558/microproyecto-desarrollo-soluciones"
+REPO = "https://github.com/katterine2558/maia-pds-microproyecto-api"
 DATASET = "https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008"
 REMOTO_DVC = "s3://maia-pds-diabetes-dvc-982005835034"
 

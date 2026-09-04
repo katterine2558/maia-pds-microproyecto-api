@@ -60,6 +60,23 @@ El tablero consume las predicciones **a través de la API**, nunca cargando el a
 
 Los tres componentes se despliegan en contenedores Docker.
 
+### Repositorios
+
+El proyecto vive en dos repositorios, uno por unidad desplegable:
+
+| Repositorio | Contiene |
+|---|---|
+| [`maia-pds-microproyecto-api`](https://github.com/katterine2558/maia-pds-microproyecto-api) (este) | Datos (DVC), pipelines de procesamiento y entrenamiento, experimentos MLflow, modelos empaquetados y la API que los sirve |
+| [`maia-pds-microproyecto-ui`](https://github.com/katterine2558/maia-pds-microproyecto-ui) | Tablero: fuentes, artefactos de despliegue y su Dockerfile |
+
+Separarlos hace estructural la frontera que evalúa el enunciado: el tablero no
+comparte proceso ni sistema de archivos con el modelo, así que solo puede llegar
+a las predicciones por HTTP.
+
+El costo de la separación es que la evidencia de commits queda repartida. La nota
+es individual y se sustenta en los commits, así que **cada integrante commitea en
+ambos repositorios** y los reportes de entrega enlazan los dos.
+
 ### Stack
 
 | Componente | Herramienta |
@@ -75,7 +92,7 @@ Los tres componentes se despliegan en contenedores Docker.
 
 | Sistema | Versiona |
 |---|---|
-| Git | Código: pipelines de procesamiento y entrenamiento, fuentes del tablero, artefactos de despliegue |
+| Git | Código: pipelines de procesamiento y entrenamiento en este repo, fuentes del tablero en `-ui`, artefactos de despliegue en ambos |
 | DVC | Datos (`data/`) y artefactos de modelo (`models/`) |
 | MLflow | Experimentos, versiones de modelos y sus resultados |
 
@@ -114,13 +131,13 @@ La nota del curso es **individual** y se evalúa sobre los aportes reflejados en
 ## Estructura
 
 ```
-microproyecto-desarrollo-soluciones/
+maia-pds-microproyecto-api/
 ├── README.md
 ├── maia_pds_proy.pdf          # enunciado del curso
 ├── pyproject.toml             # dependencias y config del paquete src/   [pendiente]
 ├── params.yaml                # hiperparametros y rutas, leidos por DVC  [pendiente]
 ├── dvc.yaml                   # definicion del pipeline reproducible     [pendiente]
-├── docker-compose.yml         # orquesta api + tablero                   [pendiente]
+├── docker-compose.yml         # levanta la api en contenedor             [pendiente]
 │
 ├── data/                      # versionado por DVC, NO por Git
 │   ├── raw/                   # datos originales, inmutables
@@ -136,8 +153,7 @@ microproyecto-desarrollo-soluciones/
 │   ├── features/              # transformaciones y construccion de variables
 │   └── models/                # entrenamiento, evaluacion y empaquetado
 │
-├── api/                       # DESPLEGABLE 1 — FastAPI + Dockerfile
-├── dashboard/                 # DESPLEGABLE 2 — Streamlit + Dockerfile
+├── api/                       # DESPLEGABLE — FastAPI + Dockerfile
 ├── tests/
 │
 └── docs/
@@ -154,11 +170,11 @@ Las carpetas existen; los archivos marcados `[pendiente]` se crean al montar el 
 
 Cuatro decisiones que conviene no romper:
 
-**`api/` y `dashboard/` viven en la raíz, no dentro de `src/`.** Cada uno es una unidad desplegable con su propio `Dockerfile` y su propio `requirements.txt`. Separarlos evita que la imagen del tablero arrastre `scikit-learn`, `mlflow` y demás dependencias de entrenamiento.
+**`api/` vive en la raíz, no dentro de `src/`.** Es una unidad desplegable con su propio `Dockerfile` y su propio `requirements.txt`. Mantenerla aparte de `src/` evita que la imagen de servicio arrastre dependencias que solo usa el entrenamiento.
 
 **`src/` es librería, no despliegue.** Contiene los pipelines de procesamiento y entrenamiento que la Entrega 3 exige tener versionados en el repositorio. Nadie la ejecuta como servicio.
 
-**`dashboard/` no importa de `src/`.** Se comunica con la API únicamente por HTTP. Es la frontera que evalúa el enunciado, y la estructura la vuelve evidente: si el tablero necesita importar `src`, la arquitectura se rompió.
+**El tablero no importa de `src/`.** Vive en otro repositorio y se comunica con la API únicamente por HTTP. Es la frontera que evalúa el enunciado, y la separación en dos repos la vuelve estructural: el tablero no tiene forma de importar `src` ni de cargar el `.pkl`.
 
 **`data/` y `models/` están fuera de Git.** Los versiona DVC; en Git solo viajan los punteros `.dvc`. Por eso ambas carpetas aparecen en `.gitignore` con excepciones para `.gitkeep` y `*.dvc`.
 
@@ -171,7 +187,7 @@ data/raw  →  src/data  →  data/interim  →  src/features  →  data/process
                                                                     ↓
                                                               src/models
                                                                     ↓
-                                              models/  →  api/  →  dashboard/
+                                              models/  →  api/  →  HTTP  →  tablero
                                                     ↑
                                         MLflow registra cada experimento
 ```
