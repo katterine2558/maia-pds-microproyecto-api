@@ -6,8 +6,6 @@ El documento sale a docs/entregas/. Las cifras que aparecen en el texto estan
 verificadas contra data/raw/diabetic_data.csv; las figuras las produce
 src/data/exploracion.py y deben regenerarse antes que este documento.
 
-Los bloques marcados como PENDIENTE los completa el equipo: no se inventan
-nombres, repartos de trabajo ni fechas de revision interna.
 """
 
 from __future__ import annotations
@@ -195,24 +193,37 @@ def construir() -> Document:
 
     # ---- 1
     doc.add_heading("1. Problema y su contexto", level=1)
-    p(doc, "Un reingreso hospitalario temprano —volver a ser hospitalizado dentro de los 30 días "
-           "siguientes al alta— se considera un indicador de calidad de la transición del cuidado. "
-           "Cuando un paciente vuelve tan pronto, lo habitual no es que haya aparecido una "
-           "enfermedad nueva, sino que algo de la salida falló: la medicación quedó mal ajustada, "
-           "el control no se agendó, o el paciente no entendió las indicaciones. En pacientes "
-           "diabéticos el problema es particularmente marcado, porque el manejo posterior al alta "
-           "exige seguimiento sostenido.")
-    p(doc, "La unidad de gestión hospitalaria puede intervenir antes de que el paciente salga: "
-           "agendar un control temprano, ajustar la medicación, activar enfermería domiciliaria. "
-           "El obstáculo no es saber qué hacer sino **a cuántos alcanza a hacérselo**. El equipo de "
-           "enfermería que programa los seguimientos tiene una capacidad diaria fija, muy inferior "
-           "al número de egresos.")
-    p(doc, "Hoy, sin una estimación de riesgo, esa priorización se hace por criterio clínico "
-           "individual y por el orden en que van saliendo los pacientes. El resultado es que la "
-           "capacidad de seguimiento no se asigna necesariamente a quienes más la necesitan, y "
-           "que nadie mide cuánto riesgo queda sin cubrir. Ese es el vacío que el prototipo busca "
-           "llenar: no reemplazar el criterio clínico, sino **ordenar la lista** para que la "
-           "capacidad disponible se gaste donde más rinde.")
+    p(doc, "El reingreso hospitalario temprano —entendido en este proyecto como una nueva "
+           "hospitalización dentro de los 30 días posteriores al alta— constituye el evento de "
+           "interés porque representa una utilización repetida de servicios en un periodo corto "
+           "y plantea una oportunidad de fortalecer el seguimiento posterior al egreso. En "
+           "pacientes con diabetes, la necesidad de continuidad del cuidado es especialmente "
+           "relevante por el carácter crónico de la enfermedad y por la coexistencia frecuente "
+           "de múltiples diagnósticos, medicamentos y antecedentes de utilización hospitalaria. "
+           "El propósito del proyecto no es atribuir una causa clínica al reingreso, sino "
+           "identificar qué pacientes presentan mayor riesgo de volver al hospital en ese plazo.")
+
+    p(doc, "Desde una perspectiva operativa, la utilidad del modelo está en apoyar una decisión "
+           "de priorización antes de que el paciente abandone el hospital. Si la institución "
+           "dispone de una capacidad limitada para realizar llamadas, controles u otras acciones "
+           "de seguimiento, una estimación comparable de riesgo permite ordenar los egresos y "
+           "concentrar primero esos recursos en los pacientes con mayor probabilidad estimada de "
+           "reingreso.")
+
+    p(doc, "Sin una estimación sistemática de riesgo, la priorización puede depender principalmente "
+           "del criterio clínico individual y de las condiciones operativas del proceso de alta. "
+           "En ese escenario, la capacidad de seguimiento no necesariamente se asigna primero a "
+           "los pacientes con mayor riesgo estimado. Ese es el vacío que el prototipo busca "
+           "abordar: no reemplazar el criterio clínico, sino **ordenar la lista** para apoyar la "
+           "asignación de la capacidad disponible hacia los pacientes que podrían requerir mayor "
+           "seguimiento.")
+
+    p(doc, "El modelo propuesto es útil porque transforma información disponible durante la "
+           "hospitalización —antecedentes de utilización de servicios, características del "
+           "episodio, diagnósticos, pruebas y tratamiento registrado— en una estimación de riesgo "
+           "individual. Esa estimación complementa, pero no sustituye, el criterio clínico: el "
+           "prototipo ordena y prioriza casos para seguimiento; no autoriza altas, no diagnostica "
+           "la causa del reingreso y no prescribe tratamiento.")
 
     # ---- 2
     doc.add_heading("2. Pregunta de negocio y alcance", level=1)
@@ -222,21 +233,27 @@ def construir() -> Document:
     p(doc, "La pregunta se responde el día del alta, antes de que el paciente salga, y su respuesta "
            "alimenta una decisión concreta: a qué pacientes se les programa control tras el egreso. "
            "El usuario es el personal de enfermería de la unidad de gestión hospitalaria.")
-    p(doc, "El prototipo trabaja de dos maneras. Sobre el listado completo de egresos del día, "
-           "ordenándolo por probabilidad estimada y cortando donde se agota la capacidad declarada; "
-           "y sobre un paciente consultado individualmente. Se descartaron dos versiones más "
-           "estrechas: una que solo evaluara pacientes de a uno respondería si este paciente "
-           "reingresa, pero no a quién alcanza a cubrirse, que es la decisión real; y una que solo "
-           "trabajara por listado dejaría por fuera al paciente que no venía programado.")
+    p(doc, "El prototipo contempla dos formas complementarias de uso. La primera trabaja sobre el "
+           "listado completo de egresos del día, ordenando a los pacientes según su probabilidad "
+           "estimada de reingreso y permitiendo priorizar el seguimiento de acuerdo con la capacidad "
+           "disponible. La segunda permite consultar individualmente a un paciente. Durante el diseño "
+           "se descartaron dos alternativas más limitadas: una basada únicamente en consultas "
+           "individuales, porque no permitiría establecer a quién priorizar cuando la capacidad de "
+           "seguimiento es limitada; y otra basada únicamente en el listado diario, porque no "
+           "permitiría evaluar un caso particular que requiera una consulta independiente.")       
     p(doc, "**Queda explícitamente por fuera del alcance.** El prototipo no estima la causa del "
-           "reingreso ni sugiere tratamiento. No se conecta a un sistema de información hospitalario: "
-           "el listado de egresos entra como archivo. No reemplaza el criterio clínico —ordena una "
-           "lista, no autoriza altas—. Y las variables de etnia y aseguradora no entran al modelo: "
-           "se reservan para auditar si el tablero detecta peor a unos grupos que a otros, porque "
-           "si entraran podría terminar priorizando por aseguradora en vez de por riesgo clínico.")
-    p(doc, "**Límite de los datos.** Los registros provienen de 130 hospitales de Estados Unidos "
-           "entre 1999 y 2008. Lo que se entrega es un prototipo metodológico; llevarlo a una "
-           "institución colombiana exigiría reentrenar con datos propios.")
+           "reingreso, no sugiere tratamientos y no reemplaza el criterio clínico. Tampoco se conecta "
+           "directamente a un sistema de información hospitalario: el listado de egresos se carga "
+           "como archivo. La variable race se reserva para evaluar posteriormente el desempeño del "
+           "modelo entre grupos y no se utiliza como predictora. De igual forma, payer_code se "
+           "excluye de las variables predictoras, de acuerdo con las decisiones de preparación "
+           "definidas a partir de la exploración de los datos.")
+    p(doc, "**Límite de los datos.** Los registros corresponden a hospitales de Estados Unidos y "
+           "cubren el periodo 1999–2008. Por esta razón, los patrones identificados no deben "
+           "generalizarse automáticamente a una población hospitalaria actual o a una institución "
+           "colombiana. El resultado de esta entrega debe entenderse como un prototipo metodológico; "
+           "una implementación en otro contexto requeriría validar su desempeño con datos "
+           "representativos de la población en la que se pretenda utilizar.")
 
     return doc, g
 
@@ -246,11 +263,12 @@ def parte_datos(doc, g):
     p(doc, f"Se emplea **Diabetes 130-US Hospitals for Years 1999-2008**, del UCI Machine Learning "
            f"Repository (dataset 296), publicado bajo licencia CC BY 4.0 y asociado al artículo de "
            f"Strack et al. (2014). Está disponible en {DATASET}.")
-    p(doc, "El criterio de priorización que fijó el enunciado fue la disponibilidad inmediata de los "
-           "datos, y este conjunto la cumple sin matices: se descarga directamente, sin registro, "
-           "sin solicitud institucional y sin acuerdo de uso. Frente a la alternativa de buscar "
-           "datos de una institución colombiana —que habría exigido trámites de aprobación con "
-           "plazos incompatibles con ocho semanas— la decisión fue inmediata.")
+    p(doc, "Uno de los criterios considerados para seleccionar el conjunto de datos fue su "
+           "disponibilidad inmediata. Este conjunto puede descargarse directamente desde UCI y cuenta "
+           "con documentación pública, lo que permite trabajar con la información desde el inicio del "
+           "proyecto. Frente a una alternativa que requiriera gestionar acceso institucional o "
+           "recolectar información primaria, su disponibilidad resulta adecuada para el plazo "
+           "establecido para el microproyecto (8 semanas).")
     p(doc, "Para que la procedencia sea verificable por un tercero, el repositorio incluye las "
            "huellas SHA-256 de los archivos junto con la URL exacta de descarga. Se contrastaron "
            "contra el archivo comprimido que UCI publica actualmente y coinciden byte a byte.")
@@ -258,19 +276,20 @@ def parte_datos(doc, g):
     tabla(doc,
           ["Característica", "Valor"],
           [["Unidad de análisis", "Un encuentro hospitalario (no un paciente)"],
-           ["Volumen", "101 766 encuentros × 50 columnas"],
-           ["Pacientes únicos", "71 518 — hay pacientes con varios encuentros"],
+          ["Volumen", "101.766 encuentros × 50 columnas (47 predictoras, 2 identificadores y 1 objetivo)"],
+           ["Pacientes únicos", "71.518 — hay pacientes con varios encuentros"],
            ["Periodo", "1999–2008, 130 hospitales de Estados Unidos"],
            ["Variable objetivo", "readmitted, con valores <30, >30 y NO"],
            ["Licencia", "CC BY 4.0"]],
           anchos=[5.0, 11.6])
 
-    p(doc, "**Definición de la variable objetivo.** El campo readmitted trae tres valores. Se "
-           "binariza a <30 contra el resto, y la decisión merece defensa porque no es la única "
-           "posible: un reingreso a los ocho meses no es un fallo de la transición del cuidado ni "
-           "cambia a quién se le agenda control el día del alta. Agrupar >30 con NO mantiene el "
-           "objetivo alineado con la decisión que el tablero apoya.")
-    p(doc, "**Familias de variables.** Las 50 columnas se agrupan en demográficas (edad, sexo, "
+    p(doc, "**Definición de la variable objetivo.** El campo readmitted contiene tres valores: "
+           "<30, >30 y NO. Para responder la pregunta de negocio se construye una variable binaria: "
+           "positivo cuando readmitted = <30 y negativo cuando readmitted = >30 o NO. Esta decisión "
+           "no implica que los reingresos posteriores a 30 días carezcan de importancia clínica; "
+           "simplemente quedan fuera de la ventana temporal que el proyecto busca predecir y "
+           "priorizar.")
+    p(doc, "**Familias de variables.** Las variables disponibles se agrupan en demográficas (edad, sexo, "
            "etnia), administrativas (tipo de admisión, destino al egreso, aseguradora, especialidad "
            "que da el alta), de utilización previa (consultas ambulatorias, urgencias y "
            "hospitalizaciones del año anterior), clínicas (días de estancia, número de "
@@ -294,10 +313,7 @@ def parte_repos(doc, g):
         f"$ git log --oneline --all | wc -l      →  {g['commits']} commits",
         f"$ git branch                           →  {', '.join(g['ramas'])}",
     ])
-    pendiente(doc, "PENDIENTE — este bloque es hoy el punto débil de la entrega: el historial "
-                   "registra un solo autor. La nota es individual y se sustenta en los commits, así "
-                   "que antes del envío cada integrante debe tener commits propios. Regenerar este "
-                   "documento después para que la salida del comando lo refleje.")
+    
     p(doc, "El repositorio es público, de modo que el equipo de tutores puede revisar el código, "
            "el historial y las ramas sin solicitar acceso. Los cuatro integrantes figuran como "
            "colaboradores con permiso de escritura e integran su trabajo mediante merges directos "
@@ -344,14 +360,14 @@ def parte_exploracion(doc):
            "que **no se ordenó el examen**, y eso es información clínica. Que a un paciente "
            "diabético no le midan la hemoglobina glicosilada durante la hospitalización dice algo "
            "sobre cómo se manejó su caso, y es justamente la hipótesis del artículo original. "
-           "Tratarlo como dato ausente e imputarlo destruiría 84 748 observaciones válidas.")
+           "Tratarlo como dato ausente e imputarlo destruiría 84.748 observaciones válidas.")
     tabla(doc,
           ["Columna", "Lectura por defecto", "Realidad"],
-          [["race", "0 nulos", "2 273 valores ? (2,2 %)"],
-           ["weight", "0 nulos", "98 569 valores ? (96,9 %)"],
+          [["race", "0 nulos", "2.273 valores ? (2,2 %)"],
+           ["weight", "0 nulos", "98.569 valores ? (96,9 %)"],
            ["medical_specialty", "0 nulos", "49,1 % ausente"],
-           ["A1Cresult", "84 748 nulos", "0 faltantes — None = examen no ordenado"],
-           ["max_glu_serum", "96 420 nulos", "0 faltantes — None = examen no ordenado"]],
+           ["A1Cresult", "84.748 nulos", "0 faltantes — None = examen no ordenado"],
+           ["max_glu_serum", "96.420 nulos", "0 faltantes — None = examen no ordenado"]],
           anchos=[4.2, 4.6, 7.8])
     p(doc, "**Por lo tanto**, todo el pipeline lee el archivo desactivando la interpretación "
            "automática de nulos y convierte ? explícitamente, columna por columna. La ausencia de "
@@ -360,18 +376,20 @@ def parte_exploracion(doc):
 
     doc.add_heading("6.2 Exclusiones: dos motivos distintos", level=2)
     p(doc, "El destino al egreso identifica encuentros que no deben entrar al análisis, por razones "
-           "que conviene no confundir. Los 1 652 encuentros de pacientes fallecidos no pueden "
+           "que conviene no confundir. Los 1.652 encuentros de pacientes fallecidos no pueden "
            "reingresar, y los datos lo confirman: ninguno registra reingreso. Excluirlos corrige un "
            "imposible. Los 771 con egreso a hospicio sí reingresan —43 lo hacen antes de los 30 "
            "días— y se excluyen por "
            "una razón distinta: son pacientes en cuidado de fin de vida, donde agendar un control "
            "para evitar el reingreso no es la intervención que el tablero decide.")
-    p(doc, "En conjunto salen 2 423 encuentros, el 2,38 %. La base de trabajo queda en **99 343 "
+    p(doc, "En conjunto salen 2.423 encuentros, el 2,38 %. La base de trabajo queda en **99.343 "
            "egresos**, con una tasa de reingreso temprano del **11,4 %**.")
-    p(doc, "**Por lo tanto**, con menos de doce positivos por cada cien casos, la exactitud es una "
-           "métrica inútil: un modelo que responda siempre «no reingresa» acierta el 88,6 % y no "
-           "sirve para nada. La evaluación se hará sobre el ordenamiento —precisión en los primeros "
-           "k casos, que es como se usa realmente— y no sobre una etiqueta.")
+    p(doc, "**Por lo tanto**, con menos de doce reingresos tempranos por cada cien casos, la exactitud utilizada de "
+           "manera aislada resulta insuficiente para evaluar el desempeño del modelo. Por ejemplo, "
+           "un modelo que predijera siempre «no reingresa» alcanzaría una exactitud cercana al "
+           "88,6 %, aun sin identificar ningún reingreso temprano. Por esta razón, la evaluación "
+           "deberá considerar métricas que permitan valorar la identificación y priorización de "
+           "la clase minoritaria.")
 
     doc.add_heading("6.3 Dónde se concentra el riesgo", level=2)
     p(doc, "La utilización previa es, con diferencia, la señal más fuerte del conjunto. La tasa de "
@@ -380,10 +398,12 @@ def parte_exploracion(doc):
            "monótono en todos los tramos.")
     figura(doc, "01-reingreso-por-hospitalizaciones-previas.png", 16.0,
            "Figura 1. Tasa de reingreso < 30 días según hospitalizaciones en el año previo. "
-           "Base: 99 343 egresos tras exclusiones.")
-    p(doc, "**Por lo tanto**, number_inpatient y sus columnas hermanas entran al modelo sin "
-           "discusión, y la maqueta las muestra en el listado junto a la probabilidad para que la "
-           "enfermera pueda contrastar el puntaje con un dato que entiende.")
+           "Base: 99.343 egresos tras exclusiones.")
+    p(doc, "El patrón observado convierte a number_inpatient y a las demás variables de utilización "
+           "previa en candidatas relevantes para el modelamiento. Su aporte definitivo deberá "
+           "confirmarse durante el entrenamiento y la validación del modelo. La maqueta las muestra "
+           "junto a la probabilidad estimada porque son antecedentes fáciles de interpretar para "
+           "el usuario.")
 
     figura(doc, "02-reingreso-por-especialidad.png", 15.0,
            "Figura 2. Tasa de reingreso por especialidad que da el alta. Solo especialidades con al "
@@ -394,27 +414,27 @@ def parte_exploracion(doc):
            "ningún paciente en particular: alimenta el componente descriptivo del tablero.")
 
     figura(doc, "03-reingreso-por-edad.png", 16.0,
-           "Figura 3. Tasa de reingreso por grupo de edad. El pico de 20–30 años se apoya en 1 649 "
-           "registros, frente a más de 20 000 en los grupos mayores.")
+           "Figura 3. Tasa de reingreso por grupo de edad. El pico de 20–30 años se apoya en 1.649 "
+           "registros, frente a más de 20.000 en los grupos mayores.")
     p(doc, "La edad muestra un ascenso sostenido a partir de los 50 años, pero el máximo aparente "
            "está en el grupo de 20 a 30. **Por lo tanto**, conviene leerlo con reservas: descansa "
-           "sobre 1 649 registros, un orden de magnitud menos que los grupos mayores, y no "
+           "sobre 1.649 registros, un orden de magnitud menos que los grupos mayores, y no "
            "justificaría por sí solo una regla de priorización.")
 
     doc.add_heading("6.4 Riesgo de fuga por pacientes repetidos", level=2)
-    p(doc, "Los 99 343 encuentros corresponden a 69 990 pacientes distintos: 16 341 pacientes "
+    p(doc, "Los 99.343 encuentros corresponden a 69.990 pacientes distintos: 16.341 pacientes "
            "aparecen más de una vez. **Por lo tanto**, una partición aleatoria en entrenamiento y "
            "prueba dejaría encuentros del mismo paciente a ambos lados y produciría un desempeño "
            "optimista que no se sostendría en operación. La partición se hará por patient_nbr.")
     p(doc, "Se detectaron además dos columnas de varianza cero —examide y citoglipton, con un único "
-           "valor en las 101 766 filas— y otras siete de medicamentos con menos de cincuenta "
+           "valor en las 101.766 filas— y otras siete de medicamentos con menos de cincuenta "
            "registros distintos de «no recetado». Todas se descartan.")
 
 
 def parte_maqueta(doc):
     doc.add_heading("7. Maqueta del prototipo", level=1)
     p(doc, "La maqueta define tres pantallas y trece elementos identificados de E1 a E13. Las cifras "
-           "que muestra el componente descriptivo son reales, calculadas sobre los 99 343 egresos; "
+           "que muestra el componente descriptivo son reales, calculadas sobre los 99.343 egresos; "
            "los datos de las pantallas de predicción son ilustrativos.")
     figura(doc, "04-maqueta-pantalla-1-priorizacion.png", 16.6,
            "Figura 4. Pantalla 1 — priorización de los egresos del día. La enfermera declara su "
@@ -451,18 +471,34 @@ def parte_maqueta(doc):
 
 def parte_equipo(doc):
     doc.add_heading("8. Reporte de trabajo en equipo", level=1)
-    pendiente(doc, "PENDIENTE — esta sección la escribe el equipo y no puede generarse "
-                   "automáticamente. Debe ser consistente con git shortlog: si el reporte dice que "
-                   "alguien lideró la exploración de datos, esa persona debe tener commits del "
-                   "notebook. Conviene cubrir: cómo se repartieron los ítems de trabajo, qué hizo "
-                   "cada integrante, cómo se coordinaron, y qué fechas de entrega y de revisión "
-                   "interna se fijaron.")
+    
     tabla(doc,
-          ["Integrante", "Ítems de trabajo", "Evidencia en commits"],
-          [["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""]],
-          anchos=[4.4, 7.2, 5.0])
+          ["Actividad", "Responsable"],
+          [["Problema y contexto", "Todos"],
+           ["Pregunta de negocio y alcance", "Todos"],
+           ["Descripción del conjunto de datos", "Gineth Katerine Arias Carrillo"],
+           ["Exploración de los datos", "Gineth Katerine Arias Carrillo"],
+           ["Maqueta del prototipo", "Gineth Katerine Arias Carrillo, Jasbyn Rainier Solano Carrillo"],
+           ["Repositorios creados", "Gineth Katerine Arias Carrillo"],
+           ["Revisión y ajuste del reporte", "Camilo Rodríguez Dueñas"],
+           ["Propuesta diseño arquitectura infraestructura", "Jasbyn Rainier Solano Carrillo"]],
+          anchos=[10.5, 6.1])
 
-    doc.add_heading("Soportes adjuntos", level=1)
+    doc.add_heading("9. Referencias", level=1)
+
+    p(doc, "Clore, J., Cios, K., DeShazo, J., & Strack, B. (2014). "
+           "Diabetes 130-US Hospitals for Years 1999-2008 [Dataset]. "
+           "UCI Machine Learning Repository. https://doi.org/10.24432/C5230J",
+      size=9.5)
+
+    p(doc, "Strack, B., DeShazo, J. P., Gennings, C., Olmo, J. L., Ventura, S., "
+           "Cios, K. J., & Clore, J. N. (2014). Impact of HbA1c measurement on "
+           "hospital readmission rates: Analysis of 70,000 clinical database "
+           "patient records. BioMed Research International, 2014, Article 781670. "
+           "https://doi.org/10.1155/2014/781670",
+      size=9.5)
+    
+    doc.add_heading("Soportes de la entrega", level=1)
     for s in [
         f"Repositorio, con el historial de commits y las ramas: {REPO}",
         f"Conjunto de datos original, UCI 296, licencia CC BY 4.0: {DATASET}",
@@ -475,6 +511,7 @@ def parte_equipo(doc):
         f"Maqueta, memoria de los trece elementos: {BLOB}/docs/maqueta/memoria.html",
         f"Figuras en resolución completa: {TREE}/docs/entregas/figuras",
         f"Política IAM del remoto de datos: {BLOB}/docs/soportes/politica-iam-dvc.json",
+        f"Propuesta diseño arquitectura infraestructura: {BLOB}/docs/soportes/arquitectura/INFRA-V-0.0.1.md",
     ]:
         vineta(doc, s)
 
