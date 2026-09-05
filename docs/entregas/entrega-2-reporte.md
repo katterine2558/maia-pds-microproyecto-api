@@ -110,13 +110,21 @@ positiva, ajuste del umbral de decision y una alternativa con Elastic Net.
 | V1 | Validacion | Regresion base | 0,6637 | 0,2207 | 2,00% |
 | V2 | Validacion | Balanceo de clases | 0,6655 | 0,2208 | 54,61% |
 | V3 | Validacion | Regularizacion C=0,5 | 0,6658 | 0,2208 | 54,40% |
-| V5 | Prueba | Peso positivo=5; umbral=0,30 | 0,6589 | 0,2133 | 81,56% |
+| V4 | Validacion | Peso positivo=5 | 0,6654 | 0,2209 | 29,95% |
+| V6 | Validacion | Elastic Net + utilizacion previa | 0,6658 | 0,2195 | 13,01% |
+| **V5** | **Prueba** | **Peso positivo=5; umbral=0,30** | **0,6589** | **0,2133** | **81,56%** |
 
-TODO — agregar V4 (barrido de peso) y V6 (Elastic Net) a la tabla, o explicar
-por que se omiten. Los resultados de las 76 corridas estan en MLflow.
+Las seis versiones se registraron en MLflow, con 76 corridas en total: los
+barridos de regularizacion, peso y umbral, y una rejilla de 75 combinaciones
+para Elastic Net. La fila de V6 corresponde a su mejor configuracion por PR-AUC
+(C=0,5, l1_ratio=0,5, peso positivo=3).
 
-TODO — una figura. Candidata mas util: la curva recall/precision contra el
-umbral, que hace visible el intercambio que justifica elegir V5.
+![Recall y precision contra el umbral de decision](figuras/entrega-2-umbral-recall-precision.png)
+
+**Figura 1.** Recall y precision en validacion segun el umbral de decision,
+sobre la version con peso positivo 5. El umbral seleccionado (0,30) es el punto
+donde el recall todavia supera el 80% antes de la caida pronunciada de los
+umbrales mas altos.
 
 ---
 
@@ -140,11 +148,27 @@ Adicionalmente, el 10% de los casos con mayor riesgo estimado concentra el
 probabilidad estimada para priorizar el seguimiento segun la capacidad
 disponible.
 
-TODO — vale la pena agregar una observacion que salio del registro en MLflow:
-la regularizacion no es la palanca relevante. El barrido de C entre 0,1 y 10
-mueve el PR-AUC menos de 0,0005. Lo que mueve el resultado es el peso de clase
-y el umbral. Es una conclusion justificada con evidencia, que es justo lo que
-pide la rubrica.
+El registro sistematico de los experimentos permite una observacion que no es
+visible al comparar solo la configuracion final. **Ninguna de las variantes
+mejoro la capacidad de ordenamiento del modelo.** El PR-AUC en validacion se
+mantiene entre 0,2195 y 0,2209 a lo largo de las 76 corridas: el barrido de
+regularizacion entre C=0,1 y C=10 lo mueve 0,00053; el barrido del peso de la
+clase positiva lo deja practicamente constante en 0,2209; y la rejilla de 75
+combinaciones de Elastic Net con variables derivadas de utilizacion previa
+alcanza como maximo 0,2195, por debajo de los modelos mas simples.
+
+Lo que cambia entre versiones no es que tan bien el modelo ordena a los
+pacientes por riesgo, sino **donde se coloca el punto de corte**. El peso de
+clase y el umbral desplazan el equilibrio entre recall y precision sobre la
+misma curva, como muestra la Figura 1, pero no producen un modelo que discrimine
+mejor.
+
+Esto tiene dos consecuencias practicas. Primera: la seleccion de V5 es una
+decision operativa sobre la tolerancia a falsos negativos, no el resultado de
+haber encontrado un modelo superior. Segunda: mejorar el desempeno requeriria
+trabajar sobre las variables o sobre la familia de modelos, no sobre los
+hiperparametros de la regresion logistica. Es el insumo natural para la
+siguiente iteracion.
 
 ---
 
