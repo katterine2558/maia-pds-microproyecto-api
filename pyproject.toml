@@ -12,6 +12,8 @@ dependencies = [
     "scipy>=1.13",
     "pyyaml>=6.0",
     "python-docx>=1.1",
+    # Fijado al mismo mayor que el servidor de la EC2 (3.3.2).
+    "mlflow>=3.3,<4",
 ]
 
 [project.optional-dependencies]
