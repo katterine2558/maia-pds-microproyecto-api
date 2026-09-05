@@ -209,13 +209,24 @@ CRITERIO_UMBRAL = "f2"
 # que necesita una restriccion. Fijar el umbral es esa restriccion, y permite
 # usar la sensibilidad como criterio de seleccion sin que colapse.
 #
-# El valor replica el de la version V5 de la regresion logistica del equipo,
-# para que las dos familias de modelos sean comparables entre si.
+# El valor sale del barrido de umbrales: por debajo de 0,30 la precision cae
+# hasta la tasa base y el modelo marca casi todos los egresos; por encima, la
+# sensibilidad se desploma.
 UMBRAL_FIJO = 0.30
 
 # Metrica con que se comparan las configuraciones de hiperparametros, medida
 # siempre al umbral fijo.
-METRICA_SELECCION = "sensibilidad"
+#
+# Se usa F2 y no la sensibilidad sola. La sensibilidad no se puede maximizar
+# sin restriccion: marcar a todos los pacientes la lleva a 1,00. El barrido lo
+# mostro sobre el peso de la clase positiva, que la mueve de 0,015 a 0,998
+# mientras la precision cae de 0,518 a 0,116 —apenas por encima de la tasa
+# base de 0,111—, es decir marcando casi todos los egresos y devolviendo a la
+# enfermera la lista sin priorizar.
+#
+# F2 conserva la prioridad sobre la sensibilidad, que sigue pesando el doble,
+# pero penaliza ese colapso de la precision.
+METRICA_SELECCION = "f2"
 
 # Razon entre el costo de un falso negativo y el de un falso positivo. Se usa
 # para el analisis de costo del notebook; cada institucion tiene la suya.

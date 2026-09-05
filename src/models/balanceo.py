@@ -83,19 +83,22 @@ def comparar(criterio: str = esq.CRITERIO_UMBRAL) -> pd.DataFrame:
               f"sensibilidad {resultados['sensibilidad']:.4f}   "
               f"FN {resultados['falsos_negativos']:>5}", flush=True)
 
-    return pd.DataFrame(filas).sort_values("f2", ascending=False)
+    # Se ordena por la metrica de seleccion configurada, no por una fija: el
+    # criterio del proyecto puede cambiar y la eleccion debe seguirlo.
+    return pd.DataFrame(filas).sort_values(esq.METRICA_SELECCION, ascending=False)
 
 
 def figura_comparacion(tabla: pd.DataFrame, destino: Path) -> None:
     """F2 por tecnica, con el conteo de falsos negativos al lado."""
-    d = tabla.sort_values("f2")
+    d = tabla.sort_values(esq.METRICA_SELECCION)
     fig, ejes = plt.subplots(1, 2, figsize=(9.2, 0.45 * len(d) + 1.6), sharey=True)
 
-    ejes[0].barh(range(len(d)), d["f2"], color="#2a78d6", height=0.6)
-    for i, v in enumerate(d["f2"]):
-        ejes[0].text(v + 0.004, i, f"{v:.4f}", va="center", fontsize=8)
-    ejes[0].set_xlim(0, d["f2"].max() * 1.25)
-    ejes[0].set_title("F2 (pesa el doble la sensibilidad)", fontsize=10, loc="left", pad=10)
+    ejes[0].barh(range(len(d)), d[esq.METRICA_SELECCION], color="#2a78d6", height=0.6)
+    for i, v in enumerate(d[esq.METRICA_SELECCION]):
+        ejes[0].text(v + 0.006, i, f"{v:.4f}", va="center", fontsize=8)
+    ejes[0].set_xlim(0, d[esq.METRICA_SELECCION].max() * 1.25)
+    ejes[0].set_title(f"{esq.METRICA_SELECCION} (umbral {esq.UMBRAL_FIJO})",
+                      fontsize=10, loc="left", pad=10)
 
     ejes[1].barh(range(len(d)), d["falsos_negativos"], color="#c8532b", height=0.6)
     for i, v in enumerate(d["falsos_negativos"]):
@@ -135,6 +138,7 @@ def main() -> None:
         mejor = tabla.iloc[0]
         mlflow.log_metrics({"mejor_f2": mejor["f2"],
                             "mejor_sensibilidad": mejor["sensibilidad"],
+                            "mejor_precision": mejor["precision"],
                             "mejor_falsos_negativos": mejor["falsos_negativos"]})
         mlflow.set_tag("tecnica_elegida", mejor["tecnica"])
 
@@ -146,7 +150,7 @@ def main() -> None:
 
     print()
     print(tabla.to_string(index=False))
-    print(f"\ntecnica elegida por F2: {tabla.iloc[0]['tecnica']}")
+    print(f"\ntecnica elegida por {esq.METRICA_SELECCION}: {tabla.iloc[0]['tecnica']}")
 
 
 if __name__ == "__main__":

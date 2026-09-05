@@ -70,9 +70,9 @@ EXPERIMENTO = "reingreso-30d-busqueda"
 # justificar: como afecta cada parametro al desempeno. En un producto
 # cartesiano ese efecto queda confundido con el de los demas.
 REJILLA = {
-    # Peso de la clase positiva. Es el unico manejo del desbalance que la
-    # regresion logistica del equipo emplea (su V5 usa peso 5), de modo que
-    # incluirlo hace comparables las dos familias de modelos.
+    # Peso de la clase positiva. Es el hiperparametro mas influyente: mueve la
+    # sensibilidad de 0,015 a 0,998 mientras el ROC-AUC apenas varia 0,003, de
+    # modo que no mejora el modelo sino que desplaza el corte.
     "peso_positivo": [1, 3, 5, 8, 12],
     "n_estimators": [100, 200, 400, 600, 800],
     "max_depth": [6, 12, 18, 24, 32],
