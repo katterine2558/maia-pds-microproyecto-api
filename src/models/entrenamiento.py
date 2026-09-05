@@ -44,6 +44,7 @@ from sklearn.model_selection import FixedThresholdClassifier, GroupShuffleSplit
 from sklearn.pipeline import Pipeline
 
 from src.features import construccion as cons
+from src.seguimiento import mlflow_config as seguimiento
 from src.features import esquema as esq
 from src.models import metricas as met
 from src.models import particion as part
@@ -324,7 +325,7 @@ def correr(
     elif solo_formulario:
         etiqueta += "-formulario"
 
-    with mlflow.start_run(run_name=etiqueta, nested=anidada):
+    with seguimiento.corrida(etiqueta, familia="bosque-aleatorio", anidada=anidada):
         # El umbral se estima con datos de entrenamiento, nunca de evaluacion.
         # Por defecto se usa el umbral fijo del proyecto. Ajustarlo por
         # validacion queda disponible, pero rompe la comparabilidad entre
@@ -353,15 +354,6 @@ def correr(
                if k in ("n_estimators", "max_depth", "min_samples_leaf",
                         "min_samples_split", "max_features", "criterion",
                         "class_weight", "strategy")},
-        })
-
-        mlflow.set_tags({
-            "autor": "lealUniandes",
-            "entrega": "2",
-            "commit": _git("rev-parse", "--short", "HEAD"),
-            "rama": _git("rev-parse", "--abbrev-ref", "HEAD"),
-            "descripcion": ficha["descripcion"],
-            "problema": "clasificacion binaria",
         })
 
         mlflow.log_metrics(resultados)

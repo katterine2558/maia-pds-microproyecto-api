@@ -54,6 +54,7 @@ import numpy as np
 import pandas as pd
 
 from src.features import construccion as cons
+from src.seguimiento import mlflow_config as seguimiento
 from src.features import esquema as esq
 from src.models import entrenamiento as ent
 from src.models import metricas as met
@@ -125,18 +126,25 @@ DESBALANCE = "peso"
 
 
 def combinaciones(grid: dict = GRID, partida: dict = PARTIDA) -> list[dict]:
-    """Barrido por coordenadas: un parametro se mueve, los demas quedan fijos.
-
-    Devuelve la configuracion de partida seguida de las variaciones de cada
-    parametro, sin repetir el valor de partida.
-    """
+    """Barrido por coordenadas, aplanado. Se conserva para `refinar`."""
     candidatos = [dict(partida)]
     for nombre, valores in grid.items():
         for valor in valores:
-            if valor == partida[nombre]:
-                continue
-            candidatos.append({**partida, nombre: valor})
+            if valor != partida[nombre]:
+                candidatos.append({**partida, nombre: valor})
     return candidatos
+
+
+def por_parametro(grid: dict = GRID, partida: dict = PARTIDA) -> dict[str, list[dict]]:
+    """Agrupa el barrido por parametro: {nombre: [configuraciones]}.
+
+    Cada grupo mueve un solo parametro y deja los demas en su valor de partida,
+    de modo que la corrida padre de ese grupo aisle su efecto.
+    """
+    return {
+        nombre: [{**partida, nombre: valor} for valor in valores]
+        for nombre, valores in grid.items()
+    }
 
 
 def refinar(mejores: dict) -> list[dict]:
@@ -218,29 +226,40 @@ def buscar(n_folds: int = 5, desbalance: str = DESBALANCE,
     if fugas:
         raise RuntimeError("la particion no aisla a los pacientes: " + "; ".join(fugas))
 
-    candidatos = candidatos or combinaciones()
-    print(f"{len(candidatos)} combinaciones x {n_folds} folds", flush=True)
+    # Un padre por parametro barrido, con una hija por valor. Sin agrupar, las
+    # veintitres combinaciones quedan sueltas en el experimento compartido y no
+    # se distingue cual parametro produjo cada una.
+    grupos = {nombre: candidatos} if candidatos else por_parametro()
+    total = sum(len(v) for v in grupos.values())
+    print(f"{len(grupos)} parametros, {total} configuraciones x {n_folds} folds",
+          flush=True)
 
     filas = []
-    with mlflow.start_run(run_name=f"barrido_hiperparametros[{desbalance}]"):
-        mlflow.log_params({
-            "modelo": "bosque", "desbalance": desbalance, "n_folds": n_folds,
-            "n_combinaciones": len(candidatos),
-            "umbral_fijo": esq.UMBRAL_FIJO,
-            "metrica_seleccion": esq.METRICA_SELECCION,
-            "validacion": "StratifiedGroupKFold por patient_nbr",
-        })
-        mlflow.set_tags({"autor": "lealUniandes", "entrega": "2",
-                         "etapa": "busqueda-hiperparametros",
-                         "problema": "clasificacion binaria"})
-        filas = _recorrer(candidatos, desbalance, n_folds, X_ent, y_ent, g_ent)
+    for nombre, configuraciones in grupos.items():
+        print(f"\n--- {nombre} ---", flush=True)
+        with seguimiento.corrida(f"barrido_{nombre}", familia="bosque-aleatorio"):
+            mlflow.log_params({
+                "modelo": "bosque", "desbalance": desbalance, "n_folds": n_folds,
+                "parametro": nombre,
+                "valores": ", ".join(str(c[nombre]) for c in configuraciones),
+                "umbral_fijo": esq.UMBRAL_FIJO,
+                "metrica_seleccion": esq.METRICA_SELECCION,
+                "validacion": "StratifiedGroupKFold por patient_nbr",
+            })
+            filas += _recorrer(configuraciones, desbalance, n_folds,
+                               X_ent, y_ent, g_ent, nombre)
 
-    return pd.DataFrame(filas).sort_values(
+    return pd.DataFrame(filas).drop_duplicates(subset=list(GRID)).sort_values(
         f"cv_{esq.METRICA_SELECCION}", ascending=False)
 
 
-def _recorrer(candidatos, desbalance, n_folds, X_ent, y_ent, g_ent) -> list[dict]:
-    """Evalua cada candidato como corrida hija de la que este activa."""
+def _recorrer(candidatos, desbalance, n_folds, X_ent, y_ent, g_ent,
+              parametro: str | None = None) -> list[dict]:
+    """Evalua cada candidato como corrida hija de la que este activa.
+
+    `parametro` da nombre a la hija con el valor que la distingue, en vez de
+    repetir la configuracion completa en cada rotulo.
+    """
     filas = []
     for i, hiperparametros in enumerate(candidatos, 1):
         inicio = time.time()
@@ -248,8 +267,9 @@ def _recorrer(candidatos, desbalance, n_folds, X_ent, y_ent, g_ent) -> list[dict
                                        X_ent, y_ent, g_ent, n_folds)
         duracion = time.time() - inicio
 
-        etiqueta = "-".join(f"{k}={v}" for k, v in hiperparametros.items())
-        with mlflow.start_run(run_name=f"bosque[{etiqueta}]", nested=True):
+        etiqueta = (f"{parametro}_{hiperparametros[parametro]}" if parametro
+                    else "-".join(f"{k}={v}" for k, v in hiperparametros.items()))
+        with seguimiento.corrida(etiqueta, familia="bosque-aleatorio", anidada=True):
             mlflow.log_params({
                 "modelo": "bosque", "desbalance": desbalance, "n_folds": n_folds,
                 "validacion": "StratifiedGroupKFold por patient_nbr",
@@ -258,14 +278,11 @@ def _recorrer(candidatos, desbalance, n_folds, X_ent, y_ent, g_ent) -> list[dict
                 "seleccion": "solo entrenamiento; evaluacion reservada",
                 **{f"hp_{k}": v for k, v in hiperparametros.items()},
             })
-            mlflow.set_tags({"autor": "lealUniandes", "entrega": "2",
-                             "etapa": "busqueda-hiperparametros",
-                             "problema": "clasificacion binaria"})
             mlflow.log_metrics({**resumen, "segundos": round(duracion, 1)})
 
         filas.append({**hiperparametros, "desbalance": desbalance, **resumen,
                       "segundos": round(duracion, 1)})
-        print(f"  [{i:>3}/{len(candidatos)}] {etiqueta:<62} "
+        print(f"  [{i:>2}/{len(candidatos)}] {etiqueta:<28} "
               f"recall {resumen['cv_sensibilidad']:.4f} +/- {resumen['cv_sensibilidad_desv']:.4f}   "
               f"prec {resumen['cv_precision']:.4f}   FN {resumen['cv_falsos_negativos']:.0f}",
               flush=True)
@@ -321,9 +338,7 @@ def main() -> None:
         tabla = tabla.drop_duplicates(subset=list(GRID)).sort_values(
             f"cv_{esq.METRICA_SELECCION}", ascending=False)
 
-    with mlflow.start_run(run_name="resumen-busqueda"):
-        mlflow.set_tags({"autor": "lealUniandes", "entrega": "2",
-                         "etapa": "busqueda-hiperparametros"})
+    with seguimiento.corrida("resumen-busqueda", familia="bosque-aleatorio"):
         with tempfile.TemporaryDirectory() as tmp:
             carpeta = Path(tmp)
             tabla.to_csv(carpeta / "busqueda.csv", index=False)

@@ -8,7 +8,11 @@ modelo" (reporte E1, seccion 6.3).
 Este modulo hace esa verificacion en dos pasos:
 
   1. Importancia por permutacion: cuanto se degrada el F1 del clasificador al
-     desordenar cada variable.
+     desordenar cada variable. Se mide sobre entrenamiento, no sobre el
+     conjunto reservado: el ranking define el subconjunto "utiles", y elegir
+     esas variables mirando el mismo conjunto con que despues se las mide
+     produciria una cifra optimista que no seria comparable con la de los
+     demas subconjuntos, definidos a priori.
   2. Comparacion de subconjuntos: un modelo por familia de variables, para
      poner a prueba la afirmacion del EDA 7.5 de que el historial previo del
      paciente pesa mas que las caracteristicas del episodio actual.
@@ -32,6 +36,7 @@ import pandas as pd
 from sklearn.inspection import permutation_importance
 
 from src.features import construccion as cons
+from src.seguimiento import mlflow_config as seguimiento
 from src.features import esquema as esq
 from src.models import entrenamiento as ent
 from src.models import particion as part
@@ -46,8 +51,13 @@ EPISODIO = [
 ]
 
 
-def importancia_por_permutacion(modelo, X_eva, y_eva, n_repeticiones: int = 5) -> pd.DataFrame:
+def importancia_por_permutacion(modelo, X_medicion, y_medicion,
+                                n_repeticiones: int = 5) -> pd.DataFrame:
     """Mide cuanto se degrada el clasificador al desordenar cada variable.
+
+    `X_medicion` debe ser de entrenamiento. El ranking que produce esta funcion
+    selecciona variables, y seleccionar mirando el conjunto reservado dejaria
+    su desempeno sin valor como estimacion.
 
     Se mide sobre F1 y no sobre exactitud: con 11,4 % de positivos, desordenar
     una variable util puede dejar la exactitud casi intacta mientras destruye
@@ -61,7 +71,7 @@ def importancia_por_permutacion(modelo, X_eva, y_eva, n_repeticiones: int = 5) -
     modo que desordenar una variable desordena todas sus indicadoras a la vez.
     """
     resultado = permutation_importance(
-        modelo, X_eva, y_eva,
+        modelo, X_medicion, y_medicion,
         scoring=["f1", "balanced_accuracy"],
         n_repeats=n_repeticiones,
         random_state=esq.SEMILLA,
@@ -75,7 +85,7 @@ def importancia_por_permutacion(modelo, X_eva, y_eva, n_repeticiones: int = 5) -
             "desviacion_f1": resultado["f1"].importances_std[i],
             "caida_balanceada": resultado["balanced_accuracy"].importances_mean[i],
         }
-        for i, variable in enumerate(X_eva.columns)
+        for i, variable in enumerate(X_medicion.columns)
     ]
 
     return (pd.DataFrame(filas)
@@ -140,23 +150,22 @@ def _modelo_entrenado():
     modelo = ent.armar_estimador(
         X, ficha["constructor"](class_weight="balanced_subsample"), "class_weight"
     )
-    umbral = ent.elegir_umbral(modelo, X_ent, y_ent, g_ent)
     modelo.fit(X_ent, y_ent)
 
     from sklearn.model_selection import FixedThresholdClassifier
-    return FixedThresholdClassifier(modelo, threshold=umbral).fit(X_ent, y_ent), X, X_eva, y_eva
+    ajustado = FixedThresholdClassifier(modelo, threshold=esq.UMBRAL_FIJO).fit(X_ent, y_ent)
+    # Se devuelve entrenamiento para medir la importancia; el conjunto
+    # reservado no interviene en la seleccion.
+    return ajustado, X, X_ent, y_ent
 
 
 def correr_importancia(n_repeticiones: int = 5) -> pd.DataFrame:
-    modelo, X, X_eva, y_eva = _modelo_entrenado()
-    ranking = importancia_por_permutacion(modelo, X_eva, y_eva, n_repeticiones)
+    modelo, X, X_medicion, y_medicion = _modelo_entrenado()
+    ranking = importancia_por_permutacion(modelo, X_medicion, y_medicion, n_repeticiones)
 
-    with mlflow.start_run(run_name="importancia-permutacion"):
+    with seguimiento.corrida("importancia-permutacion", familia="bosque-aleatorio"):
         mlflow.log_params({"modelo": "bosque", "n_repeticiones": n_repeticiones,
                            "n_variables": X.shape[1], "medida": "caida del F1"})
-        mlflow.set_tags({"autor": "lealUniandes", "entrega": "2",
-                         "problema": "clasificacion binaria",
-                         "descripcion": "Importancia por permutacion sobre el conjunto reservado"})
         aportan = int((ranking["caida_f1"] > 0).sum())
         mlflow.log_metrics({"variables_que_aportan": aportan,
                             "variables_sin_aporte": len(ranking) - aportan})
@@ -187,10 +196,7 @@ def correr_subconjuntos(ranking: pd.DataFrame | None = None) -> pd.DataFrame:
               f"sens {r['sensibilidad']:.3f}   bal {r['exactitud_balanceada']:.3f}")
 
     tabla = pd.DataFrame(filas)
-    with mlflow.start_run(run_name="comparacion-subconjuntos"):
-        mlflow.set_tags({"autor": "lealUniandes", "entrega": "2",
-                         "problema": "clasificacion binaria",
-                         "descripcion": "Comparacion de subconjuntos de variables"})
+    with seguimiento.corrida("comparacion-subconjuntos", familia="bosque-aleatorio"):
         with tempfile.TemporaryDirectory() as tmp:
             carpeta = Path(tmp)
             tabla.to_csv(carpeta / "comparacion-subconjuntos.csv", index=False)

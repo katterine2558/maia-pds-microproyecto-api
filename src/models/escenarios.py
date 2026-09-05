@@ -32,6 +32,7 @@ from sklearn.metrics import (
 )
 
 from src.features import construccion as cons
+from src.seguimiento import mlflow_config as seguimiento
 from src.features import esquema as esq
 from src.models import entrenamiento as ent
 from src.models import metricas as met
@@ -116,15 +117,13 @@ def correr(n_folds: int = 5) -> pd.DataFrame:
         probabilidades = modelo.predict_proba(X_eva)[:, 1]
         fila = metricas_completas(nombre, y_eva, probabilidades, esq.UMBRAL_FIJO)
 
-        with mlflow.start_run(run_name=nombre, nested=True):
+        with seguimiento.corrida(nombre, familia="bosque-aleatorio", anidada=True):
             mlflow.log_params({
                 "escenario": nombre, "desbalance": DESBALANCE,
                 "peso_positivo": PESO_POSITIVO, "umbral": esq.UMBRAL_FIJO,
                 "n_folds": n_folds, "n_predictoras": X.shape[1],
                 **{f"hp_{k}": v for k, v in hiperparametros.items()},
             })
-            mlflow.set_tags({"autor": "lealUniandes", "entrega": "2",
-                             "etapa": "escenarios", "problema": "clasificacion binaria"})
             mlflow.log_metrics({
                 **{k: v for k, v in fila.items() if k != "modelo"},
                 "cv_recall": float(pd.Series(recalls).mean()),
@@ -155,10 +154,9 @@ def main() -> None:
           f"(peso {PESO_POSITIVO}) | umbral {esq.UMBRAL_FIJO}\n", flush=True)
 
     # Corrida padre: agrupa los cuatro escenarios como hijas.
-    with mlflow.start_run(run_name="escenarios_bosque"):
+    with seguimiento.corrida("escenarios_bosque", familia="bosque-aleatorio"):
         mlflow.log_params({"desbalance": DESBALANCE, "peso_positivo": PESO_POSITIVO,
                            "umbral": esq.UMBRAL_FIJO, "n_escenarios": len(ESCENARIOS)})
-        mlflow.set_tags({"autor": "lealUniandes", "entrega": "2", "etapa": "escenarios"})
 
         tabla = correr(args.folds)
 

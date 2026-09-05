@@ -42,9 +42,9 @@ import mlflow
 import pandas as pd
 
 from src.features import construccion as cons
+from src.seguimiento import mlflow_config as seguimiento
 from src.features import esquema as esq
 from src.models import entrenamiento as ent
-from src.models import metricas as met
 from src.models import particion as part
 
 EXPERIMENTO = "reingreso-30d-balanceo"
@@ -130,11 +130,9 @@ def main() -> None:
           flush=True)
 
     # Corrida padre: agrupa las siete tecnicas como hijas.
-    with mlflow.start_run(run_name="comparacion_balanceo"):
+    with seguimiento.corrida("comparacion_balanceo", familia="bosque-aleatorio"):
         mlflow.log_params({"criterio_umbral": args.criterio,
                            "tecnicas": ", ".join(ent.DESBALANCES)})
-        mlflow.set_tags({"autor": "lealUniandes", "entrega": "2",
-                         "etapa": "balanceo", "problema": "clasificacion binaria"})
         tabla = comparar(args.criterio)
         mejor = tabla.iloc[0]
         mlflow.log_metrics({"mejor_f2": mejor["f2"],
