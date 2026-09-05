@@ -18,7 +18,8 @@ Leonardo Almanza Sanchez · Gineth Katerine Arias Carrillo
 
 ## 1. Resumen del problema
 
-*(maximo 1 pagina — tope del enunciado)*
+*(maximo 1 pagina — tope del enunciado. Version de trabajo: Leonardo la
+ajusta antes de la entrega.)*
 
 ### Contexto del problema
 
@@ -74,10 +75,11 @@ en Git viaja unicamente el puntero.
   en un mismo lugar.
 - El trabajo paso de la caracterizacion y exploracion de los datos a la
   preparacion, entrenamiento y evaluacion del modelo predictivo.
-- TODO — confirmar si la maqueta cambio respecto a la version iterada en la
-  semana 3. Si no cambio, decirlo explicitamente: el enunciado pide el tablero
-  "de acuerdo con la maqueta".
-- TODO — cambios en el alcance o en los datos, si los hubo.
+- **La maqueta no cambio.** Se mantiene la version iterada en la semana 3, con
+  las bandas de riesgo ancladas en la tasa general observada. El tablero se
+  desarrolla de acuerdo con ella.
+- El alcance, la pregunta de negocio y los conjuntos de datos se mantienen sin
+  cambios respecto a la Entrega 1.
 
 ## 2. Modelos desarrollados y su evaluacion
 
