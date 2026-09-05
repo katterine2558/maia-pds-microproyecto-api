@@ -1,7 +1,8 @@
 # Entrega 2 — Reporte
 
 **Micro-proyecto · Desarrollo de Soluciones · MAIA — Universidad de los Andes**
-Katerine Arias · Camilo Ardila · Rainer Solano · Leonardo
+Camilo Andres Rodriguez Duenas · Jasbyn Rainier Solano Carrillo ·
+Leonardo Almanza Sanchez · Gineth Katerine Arias Carrillo
 
 > **Restriccion del enunciado: maximo 10 paginas.** Si se entrega mas, solo se
 > califican las primeras 10. El reporte de trabajo en equipo va aparte y tiene
@@ -17,35 +18,66 @@ Katerine Arias · Camilo Ardila · Rainer Solano · Leonardo
 
 ## 1. Resumen del problema
 
-*(maximo 1 pagina — es tope del enunciado, no sugerencia)*
+*(maximo 1 pagina — tope del enunciado)*
 
 ### Contexto del problema
 
-TODO — Rainer / Leonardo. Reingreso hospitalario temprano en pacientes
-diabeticos: por que importa clinica y economicamente.
+El reingreso hospitalario temprano, entendido como una nueva hospitalizacion
+dentro de los 30 dias posteriores al alta, representa una utilizacion repetida
+de servicios en un periodo corto y una oportunidad de fortalecer el seguimiento
+tras el egreso. Cuando la institucion dispone de capacidad limitada para
+llamadas o controles posteriores, la priorizacion suele depender del criterio
+clinico individual y de las condiciones operativas del alta, sin que la
+capacidad se asigne necesariamente primero a los pacientes de mayor riesgo. El
+prototipo aborda ese vacio: no reemplaza el criterio clinico, sino que ordena
+la lista de egresos del dia segun una estimacion comparable de riesgo.
 
 ### Pregunta de negocio y alcance
 
-TODO — retomar de la Entrega 1 y ajustar si cambio.
+**Que pacientes diabeticos van a reingresar al hospital dentro de los 30 dias
+siguientes al alta.**
 
-### Breve descripcion de los conjuntos de datos
+La pregunta se responde el dia del alta, antes de que el paciente salga, y
+alimenta una decision concreta: a que pacientes se les programa control tras el
+egreso. El usuario es el personal de enfermeria de la unidad de gestion
+hospitalaria. El prototipo contempla dos usos complementarios: ordenar el
+listado completo de egresos del dia segun probabilidad estimada, y consultar
+individualmente a un paciente.
 
-Base analitica derivada del dataset de readmision en diabetes: 99.343
-encuentros de 69.990 pacientes, 32 predictores antes de codificacion. Los
-diagnosticos `diag_1`, `diag_2` y `diag_3` se agruparon para reducir su alta
-cardinalidad; se excluyeron identificadores, variables con alta ausencia o
-baja informacion.
+Queda fuera del alcance estimar la causa del reingreso, sugerir tratamientos y
+reemplazar el criterio clinico. Tampoco hay conexion directa a un sistema de
+informacion hospitalario: el listado de egresos se carga como archivo. La
+variable `race` se reserva para evaluar el desempeno entre grupos y no se usa
+como predictora. Los registros corresponden a hospitales de Estados Unidos
+entre 1999 y 2008, de modo que los patrones identificados no se generalizan
+automaticamente a una poblacion hospitalaria actual: el resultado es un
+prototipo metodologico.
+
+### Conjuntos de datos
+
+Se emplea *Diabetes 130-US Hospitals for Years 1999-2008* (UCI Machine Learning
+Repository, dataset 296, licencia CC BY 4.0). De los 101.766 encuentros
+originales se excluyeron 2.423 (2,38%): 1.652 de pacientes fallecidos, que no
+pueden reingresar, y 771 con egreso a hospicio, cuyo objetivo de cuidado es
+distinto. La base analitica queda en **99.343 encuentros de 69.990 pacientes**,
+con una tasa de reingreso temprano del **11,4%**. La variable objetivo es
+binaria: positivo cuando `readmitted` es `<30`. Los datos se versionan con DVC;
+en Git viaja unicamente el puntero.
 
 ### Cambios respecto a la Entrega 1
 
-**El enunciado pide explicitamente resaltar esto.** No puede faltar.
-
-- La Entrega 1 se centro en caracterizacion y exploracion. Esta entrega avanza
-  a preparacion, entrenamiento y evaluacion del modelo predictivo.
+- **Se separo el repositorio en dos.** El codigo de modelos y API vive ahora en
+  `maia-pds-microproyecto-api`; el tablero tiene su propio repositorio. En la
+  Entrega 1 todo estaba en `microproyecto-desarrollo-soluciones`.
+- **Se incorporo un servidor de MLflow sobre AWS EC2** como registro compartido
+  de experimentos, de modo que las versiones de modelo del equipo se comparan
+  en un mismo lugar.
+- El trabajo paso de la caracterizacion y exploracion de los datos a la
+  preparacion, entrenamiento y evaluacion del modelo predictivo.
+- TODO — confirmar si la maqueta cambio respecto a la version iterada en la
+  semana 3. Si no cambio, decirlo explicitamente: el enunciado pide el tablero
+  "de acuerdo con la maqueta".
 - TODO — cambios en el alcance o en los datos, si los hubo.
-- TODO — cambios en la maqueta del tablero frente a la version de la Entrega 1.
-
----
 
 ## 2. Modelos desarrollados y su evaluacion
 
