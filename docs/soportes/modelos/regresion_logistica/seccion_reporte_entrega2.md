@@ -8,7 +8,7 @@
 
 Se desarrolló un modelo de regresión logística para estimar la probabilidad de reingreso hospitalario dentro de los 30 días posteriores al alta. Se mantuvo la población analítica definida en la primera entrega: 99.343 encuentros correspondientes a 69.990 pacientes, con 11.314 reingresos tempranos (11,39%).
 
-
+Frente a la Entrega 1, centrada en la caracterización y exploración de los datos, en esta entrega se avanzó hacia la construcción y evaluación del modelo predictivo. A partir de los hallazgos previos se definieron las variables de entrada, se trataron variables de alta cardinalidad y baja frecuencia y se realizó la partición por paciente. Uno de los principales retos fue el desbalance de la variable objetivo: solo el 11,39% de los encuentros corresponde a reingresos antes de 30 días, condición que afectó especialmente el desempeño de la regresión base.
 
 La partición de los datos se realizó por paciente utilizando `patient\_nbr`, de forma que un mismo paciente no pudiera aparecer simultáneamente en entrenamiento, validación y prueba. El conjunto final quedó compuesto por 63.670 encuentros de entrenamiento, 15.852 de validación y 19.821 de prueba, sin pacientes compartidos entre particiones.
 
