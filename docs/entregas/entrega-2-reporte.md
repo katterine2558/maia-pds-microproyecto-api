@@ -196,7 +196,10 @@ Recordar la frontera que exige el enunciado: el tablero consume el modelo
 
 ### Los tres pantallazos exigidos
 
-1. Terminal SSH conectada, donde se lea el prompt `ubuntu@ip-172-31-x-x`
-2. Consola de EC2 con la instancia y su IP publica
+1. ~~Terminal SSH conectada~~ — **listo**:
+   `figuras/entrega-2-mlflow-ec2-ssh.png`. Muestra el prompt
+   `ubuntu@ip-172-31-29-30`, la IP privada de la interfaz y la IP publica en
+   el comando de conexion.
+2. Consola de EC2 con la instancia y su IP publica — pendiente
 3. Interfaz de MLflow con los experimentos y la URL visible en la barra de
-   direcciones
+   direcciones — pendiente
