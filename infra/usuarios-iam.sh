@@ -23,10 +23,28 @@ source "$VALORES"
 CUENTA="$CUENTA_AWS"
 EQUIPO=(camilo rainer leonardo)
 
-clave() { LC_ALL=C tr -dc 'A-Za-z0-9!@#%^*_=+-' </dev/urandom | head -c 20; }
+# Con python en vez de 'tr </dev/urandom | head': esa tuberia le manda SIGPIPE
+# a tr cuando head corta, y con 'set -o pipefail' el script moria en silencio.
+clave() {
+    python3 -c "import secrets, string
+alfabeto = string.ascii_letters + string.digits + '!@#%^*_=+-'
+print(''.join(secrets.choice(alfabeto) for _ in range(20)))"
+}
 
 # Tolera que un recurso ya exista, para poder reintentar sin romper nada.
 suave() { "$@" >/dev/null 2>&1 || true; }
+
+# Reejecutable: si el usuario ya tiene contrasena, la reemplaza.
+poner_clave() {
+    local usuario="$1" nueva="$2"
+    if aws iam get-login-profile --user-name "$usuario" >/dev/null 2>&1; then
+        aws iam update-login-profile --user-name "$usuario" \
+            --password "$nueva" --password-reset-required
+    else
+        aws iam create-login-profile --user-name "$usuario" \
+            --password "$nueva" --password-reset-required >/dev/null
+    fi
+}
 
 echo "==> Politica prender-mlflow"
 POLITICA=$(mktemp)
@@ -45,15 +63,16 @@ suave aws iam attach-group-policy --group-name equipo-mlflow \
 suave aws iam attach-group-policy --group-name equipo-mlflow \
     --policy-arn arn:aws:iam::aws:policy/IAMUserChangePassword
 
-declare -A CLAVES
+# Pares "usuario clave". Arreglo simple, no asociativo: el bash 3.2 que trae
+# macOS no soporta 'declare -A'.
+CLAVES=()
 
 echo "==> Usuarios del equipo"
 for u in "${EQUIPO[@]}"; do
     suave aws iam create-user --user-name "$u"
     suave aws iam add-user-to-group --user-name "$u" --group-name equipo-mlflow
-    c=$(clave); CLAVES[$u]=$c
-    aws iam create-login-profile --user-name "$u" \
-        --password "$c" --password-reset-required >/dev/null
+    c=$(clave); CLAVES+=("$u $c")
+    poner_clave "$u" "$c"
     echo "    $u"
 done
 
@@ -61,9 +80,8 @@ echo "==> Administrador"
 suave aws iam create-user --user-name katerine
 suave aws iam attach-user-policy --user-name katerine \
     --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
-c=$(clave); CLAVES[katerine]=$c
-aws iam create-login-profile --user-name katerine \
-    --password "$c" --password-reset-required >/dev/null
+c=$(clave); CLAVES+=("katerine $c")
+poner_clave katerine "$c"
 echo "    katerine"
 
 echo
@@ -72,8 +90,10 @@ echo " URL de ingreso"
 echo "   https://${CUENTA}.signin.aws.amazon.com/console"
 echo
 echo " CONTRASENAS TEMPORALES (cambio obligatorio al primer ingreso)"
-for u in "${!CLAVES[@]}"; do
-    printf "   %-10s %s\n" "$u" "${CLAVES[$u]}"
+for par in "${CLAVES[@]}"; do
+    # Entre comillas: las claves llevan '*' y sin comillas el shell lo
+    # expandiria contra los archivos del directorio.
+    printf "   %-10s %s\n" "${par%% *}" "${par#* }"
 done
 echo "=============================================================="
 echo
