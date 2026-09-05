@@ -200,6 +200,9 @@ Recordar la frontera que exige el enunciado: el tablero consume el modelo
    `figuras/entrega-2-mlflow-ec2-ssh.png`. Muestra el prompt
    `ubuntu@ip-172-31-29-30`, la IP privada de la interfaz y la IP publica en
    el comando de conexion.
-2. Consola de EC2 con la instancia y su IP publica — pendiente
+2. ~~Consola de EC2~~ — **listo**:
+   `figuras/entrega-2-mlflow-ec2-consola.png`. Muestra la instancia
+   `mlflow-maia` en estado Running, la IP publica 3.224.107.117, la Elastic IP
+   asociada y el usuario de la cuenta.
 3. Interfaz de MLflow con los experimentos y la URL visible en la barra de
    direcciones — pendiente
