@@ -140,3 +140,55 @@ El modelo V3 se evaluó también ordenando los encuentros por probabilidad estim
 
 Este análisis complementa las métricas tradicionales porque el propósito del prototipo es ordenar los egresos por riesgo para apoyar la priorización del seguimiento.
 
+## Ajustes orientados a sensibilidad
+
+Después de las primeras tres versiones se evaluaron configuraciones adicionales para mejorar la detección de reingresos.
+
+### V4 - Ajuste del peso de la clase positiva
+
+Se evaluaron pesos de 2, 3, 4 y 5 para la clase positiva. El mejor resultado de validación según F2 se obtuvo con peso positivo igual a 5.
+
+### V5 - Peso de clase y ajuste del umbral
+
+Sobre la configuración anterior se evaluaron umbrales entre 0,20 y 0,50. El mejor F2 de validación se obtuvo con umbral 0,30.
+
+Resultados en prueba:
+
+- Peso positivo: 5
+- C: 0,5
+- Umbral: 0,30
+- ROC-AUC: 0,6594
+- PR-AUC: 0,2143
+- Precision: 0,1387
+- Recall: 0,8201
+- F2: 0,4137
+- Accuracy: 0,4130
+- Verdaderos positivos: 1.810
+- Falsos negativos: 397
+- Falsos positivos: 11.237
+- Verdaderos negativos: 6.377
+
+El aumento del recall implica un costo importante en falsos positivos. Por esta razón esta configuración se interpreta como una alternativa orientada a sensibilidad y no como una mejora general de todas las métricas.
+
+### V6 - Elastic Net y variables derivadas
+
+Se evaluó una versión con regularización Elastic Net y variables derivadas de utilización previa.
+
+Resultados en prueba con umbral 0,50:
+
+- ROC-AUC: 0,6603
+- PR-AUC: 0,2139
+- Precision: 0,3211
+- Recall: 0,1382
+- F2: 0,1560
+- Accuracy: 0,8715
+
+Aunque V6 obtuvo el ROC-AUC más alto, la diferencia fue marginal y el PR-AUC no mejoró. Además, su recall con el umbral estándar fue considerablemente menor que el de V5. Por lo tanto, no se seleccionó como configuración final.
+
+## Selección de la regresión
+
+La configuración seleccionada para el uso operativo es V5, con peso positivo 5, C igual a 0,5 y umbral 0,30. La selección responde al objetivo de aumentar la detección de pacientes con reingreso temprano.
+
+Sin embargo, para la priorización diaria se recomienda utilizar principalmente la probabilidad estimada como puntaje de riesgo y ordenar los egresos según la capacidad disponible, en lugar de depender exclusivamente de una clasificación binaria fija.
+
+La evaluación por capacidad mostró que el 10 % de mayor riesgo concentra el 22,84% de los reingresos y el 30% concentra aproximadamente el 49,4%.

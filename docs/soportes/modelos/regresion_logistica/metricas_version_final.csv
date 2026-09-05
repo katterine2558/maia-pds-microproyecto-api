@@ -1,0 +1,2 @@
+umbral,precision,recall,f2,accuracy,verdaderos_negativos,falsos_positivos,falsos_negativos,verdaderos_positivos,roc_auc,pr_auc
+0.3,0.13872920978002606,0.8201178069777979,0.4137142857142857,0.4130467685787801,6377,11237,397,1810,0.65944056116749,0.21428285342416745
