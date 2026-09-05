@@ -45,9 +45,17 @@ models/**
 *.h5
 *.onnx
 
+# Material de referencia del curso (ejemplos de entregas de otros equipos,
+# enunciados). No es codigo del proyecto y no se versiona.
+examples/
+
 # Configuracion local de asistentes (no se versiona)
 CLAUDE.md
 .claude/
+
+# Valores concretos de la infraestructura (IPs del equipo, ids de cuenta).
+# El repositorio es publico: aqui solo va la plantilla .example
+infra/valores.env
 
 # Secretos y configuracion local
 .env
