@@ -270,6 +270,7 @@ def correr(
     subconjunto: str | None = None,
     hiperparametros: dict | None = None,
     experimento: str = EXPERIMENTO,
+    anidada: bool = False,
 ) -> dict:
     """Entrena el clasificador, lo evalua y registra la corrida en MLflow."""
     if nombre_modelo not in CATALOGO:
@@ -323,7 +324,7 @@ def correr(
     elif solo_formulario:
         etiqueta += "-formulario"
 
-    with mlflow.start_run(run_name=etiqueta):
+    with mlflow.start_run(run_name=etiqueta, nested=anidada):
         # El umbral se estima con datos de entrenamiento, nunca de evaluacion.
         # Por defecto se usa el umbral fijo del proyecto. Ajustarlo por
         # validacion queda disponible, pero rompe la comparabilidad entre

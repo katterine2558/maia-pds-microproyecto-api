@@ -116,7 +116,7 @@ def correr(n_folds: int = 5) -> pd.DataFrame:
         probabilidades = modelo.predict_proba(X_eva)[:, 1]
         fila = metricas_completas(nombre, y_eva, probabilidades, esq.UMBRAL_FIJO)
 
-        with mlflow.start_run(run_name=nombre):
+        with mlflow.start_run(run_name=nombre, nested=True):
             mlflow.log_params({
                 "escenario": nombre, "desbalance": DESBALANCE,
                 "peso_positivo": PESO_POSITIVO, "umbral": esq.UMBRAL_FIJO,
@@ -153,14 +153,19 @@ def main() -> None:
 
     print(f"{len(ESCENARIOS)} escenarios | desbalance {DESBALANCE} "
           f"(peso {PESO_POSITIVO}) | umbral {esq.UMBRAL_FIJO}\n", flush=True)
-    tabla = correr(args.folds)
 
-    SALIDA.mkdir(parents=True, exist_ok=True)
-    destino = SALIDA / "metricas_bosque_aleatorio.csv"
-    tabla.to_csv(destino, index=False)
-
-    with mlflow.start_run(run_name="resumen-escenarios"):
+    # Corrida padre: agrupa los cuatro escenarios como hijas.
+    with mlflow.start_run(run_name="escenarios_bosque"):
+        mlflow.log_params({"desbalance": DESBALANCE, "peso_positivo": PESO_POSITIVO,
+                           "umbral": esq.UMBRAL_FIJO, "n_escenarios": len(ESCENARIOS)})
         mlflow.set_tags({"autor": "lealUniandes", "entrega": "2", "etapa": "escenarios"})
+
+        tabla = correr(args.folds)
+
+        SALIDA.mkdir(parents=True, exist_ok=True)
+        destino = SALIDA / "metricas_bosque_aleatorio.csv"
+        tabla.to_csv(destino, index=False)
+
         mlflow.log_artifact(str(destino), artifact_path="escenarios")
         mejor = tabla.loc[tabla["cv_recall"].idxmax()]
         mlflow.set_tag("escenario_elegido", mejor["modelo"])

@@ -51,7 +51,7 @@ EXPERIMENTO = "reingreso-30d-balanceo"
 
 
 def comparar(criterio: str = esq.CRITERIO_UMBRAL) -> pd.DataFrame:
-    """Entrena un bosque por tecnica y registra cada uno en MLflow."""
+    """Entrena un bosque por tecnica, cada uno como corrida hija en MLflow."""
     trabajo = cons.conjunto_de_trabajo(cons.cargar())
     X, y, grupos = cons.matriz(trabajo)
     X_ent, X_eva, y_ent, y_eva, g_ent, g_eva = part.particionar(X, y, grupos)
@@ -65,7 +65,7 @@ def comparar(criterio: str = esq.CRITERIO_UMBRAL) -> pd.DataFrame:
         inicio = time.time()
         resultados = ent.correr(
             "bosque", desbalance=tecnica, criterio_umbral=criterio,
-            subconjunto=None, experimento=EXPERIMENTO,
+            subconjunto=None, experimento=EXPERIMENTO, anidada=True,
         )
         filas.append({
             "tecnica": tecnica,
@@ -128,13 +128,14 @@ def main() -> None:
 
     print(f"comparando {len(ent.DESBALANCES)} tecnicas, criterio de umbral: {args.criterio}",
           flush=True)
-    tabla = comparar(args.criterio)
 
-    with mlflow.start_run(run_name="comparacion-balanceo"):
+    # Corrida padre: agrupa las siete tecnicas como hijas.
+    with mlflow.start_run(run_name="comparacion_balanceo"):
         mlflow.log_params({"criterio_umbral": args.criterio,
                            "tecnicas": ", ".join(ent.DESBALANCES)})
         mlflow.set_tags({"autor": "lealUniandes", "entrega": "2",
                          "etapa": "balanceo", "problema": "clasificacion binaria"})
+        tabla = comparar(args.criterio)
         mejor = tabla.iloc[0]
         mlflow.log_metrics({"mejor_f2": mejor["f2"],
                             "mejor_sensibilidad": mejor["sensibilidad"],

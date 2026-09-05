@@ -26,9 +26,13 @@ Cuatro decisiones sostienen esa honestidad:
    ajuste de ese fold. Fijarlo mirando la particion de validacion seria la
    misma fuga en pequeno.
 
-Cada combinacion se registra como una corrida propia de MLflow. No se usa
-GridSearchCV a proposito: colapsaria las cuarenta y ocho en una sola corrida y
-la vista de comparacion de la interfaz quedaria sin nada que comparar.
+Las combinaciones se registran anidadas: una corrida padre agrupa el barrido y
+cada combinacion queda como corrida hija. Asi el experimento compartido del
+equipo no se llena de corridas sueltas y el barrido se lee como una unidad.
+
+No se usa GridSearchCV a proposito: colapsaria todas las combinaciones en una
+sola corrida y la vista de comparacion de la interfaz quedaria sin nada que
+comparar.
 
 Uso:
     python -m src.models.busqueda --folds 5
@@ -218,6 +222,26 @@ def buscar(n_folds: int = 5, desbalance: str = DESBALANCE,
     print(f"{len(candidatos)} combinaciones x {n_folds} folds", flush=True)
 
     filas = []
+    with mlflow.start_run(run_name=f"barrido_hiperparametros[{desbalance}]"):
+        mlflow.log_params({
+            "modelo": "bosque", "desbalance": desbalance, "n_folds": n_folds,
+            "n_combinaciones": len(candidatos),
+            "umbral_fijo": esq.UMBRAL_FIJO,
+            "metrica_seleccion": esq.METRICA_SELECCION,
+            "validacion": "StratifiedGroupKFold por patient_nbr",
+        })
+        mlflow.set_tags({"autor": "lealUniandes", "entrega": "2",
+                         "etapa": "busqueda-hiperparametros",
+                         "problema": "clasificacion binaria"})
+        filas = _recorrer(candidatos, desbalance, n_folds, X_ent, y_ent, g_ent)
+
+    return pd.DataFrame(filas).sort_values(
+        f"cv_{esq.METRICA_SELECCION}", ascending=False)
+
+
+def _recorrer(candidatos, desbalance, n_folds, X_ent, y_ent, g_ent) -> list[dict]:
+    """Evalua cada candidato como corrida hija de la que este activa."""
+    filas = []
     for i, hiperparametros in enumerate(candidatos, 1):
         inicio = time.time()
         resumen = evaluar_por_folds(hiperparametros, desbalance,
@@ -225,7 +249,7 @@ def buscar(n_folds: int = 5, desbalance: str = DESBALANCE,
         duracion = time.time() - inicio
 
         etiqueta = "-".join(f"{k}={v}" for k, v in hiperparametros.items())
-        with mlflow.start_run(run_name=f"bosque[{etiqueta}]"):
+        with mlflow.start_run(run_name=f"bosque[{etiqueta}]", nested=True):
             mlflow.log_params({
                 "modelo": "bosque", "desbalance": desbalance, "n_folds": n_folds,
                 "validacion": "StratifiedGroupKFold por patient_nbr",
@@ -246,7 +270,7 @@ def buscar(n_folds: int = 5, desbalance: str = DESBALANCE,
               f"prec {resumen['cv_precision']:.4f}   FN {resumen['cv_falsos_negativos']:.0f}",
               flush=True)
 
-    return pd.DataFrame(filas).sort_values(f"cv_{esq.METRICA_SELECCION}", ascending=False)
+    return filas
 
 
 def figura_busqueda(tabla: pd.DataFrame, destino: Path) -> None:
