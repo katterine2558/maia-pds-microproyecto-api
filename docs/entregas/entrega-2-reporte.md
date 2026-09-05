@@ -114,9 +114,8 @@ positiva, ajuste del umbral de decision y una alternativa con Elastic Net.
 | V6 | Validacion | Elastic Net + utilizacion previa | 0,6658 | 0,2195 | 13,01% |
 | **V5** | **Prueba** | **Peso positivo=5; umbral=0,30** | **0,6589** | **0,2133** | **81,56%** |
 
-Las seis versiones se registraron en MLflow, con 76 corridas en total: los
-barridos de regularizacion, peso y umbral, y una rejilla de 75 combinaciones
-para Elastic Net. La fila de V6 corresponde a su mejor configuracion por PR-AUC
+Las seis versiones se registraron en MLflow: los barridos de regularizacion,
+peso y umbral, y una rejilla completa de 75 combinaciones para Elastic Net. La fila de V6 corresponde a su mejor configuracion por PR-AUC
 (C=0,5, l1_ratio=0,5, peso positivo=3).
 
 ![Recall y precision contra el umbral de decision](figuras/entrega-2-umbral-recall-precision.png)
@@ -151,11 +150,12 @@ disponible.
 El registro sistematico de los experimentos permite una observacion que no es
 visible al comparar solo la configuracion final. **Ninguna de las variantes
 mejoro la capacidad de ordenamiento del modelo.** El PR-AUC en validacion se
-mantiene entre 0,2195 y 0,2209 a lo largo de las 76 corridas: el barrido de
-regularizacion entre C=0,1 y C=10 lo mueve 0,00053; el barrido del peso de la
-clase positiva lo deja practicamente constante en 0,2209; y la rejilla de 75
-combinaciones de Elastic Net con variables derivadas de utilizacion previa
-alcanza como maximo 0,2195, por debajo de los modelos mas simples.
+mantiene entre 0,2165 y 0,2209 a lo largo de las 93 corridas con metricas: el
+barrido de regularizacion entre C=0,1 y C=10 lo mueve 0,00053; el barrido del
+peso de la clase positiva lo deja practicamente constante en 0,2209; y la
+rejilla completa de 75 combinaciones de Elastic Net con variables derivadas de
+utilizacion previa va de 0,2165 a 0,2195, es decir que su mejor configuracion
+queda por debajo de los modelos mas simples.
 
 Lo que cambia entre versiones no es que tan bien el modelo ordena a los
 pacientes por riesgo, sino **donde se coloca el punto de corte**. El peso de
