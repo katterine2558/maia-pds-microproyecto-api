@@ -217,16 +217,11 @@ UMBRAL_FIJO = 0.30
 # Metrica con que se comparan las configuraciones de hiperparametros, medida
 # siempre al umbral fijo.
 #
-# Se usa F2 y no la sensibilidad sola. La sensibilidad no se puede maximizar
-# sin restriccion: marcar a todos los pacientes la lleva a 1,00. El barrido lo
-# mostro sobre el peso de la clase positiva, que la mueve de 0,015 a 0,998
-# mientras la precision cae de 0,518 a 0,116 —apenas por encima de la tasa
-# base de 0,111—, es decir marcando casi todos los egresos y devolviendo a la
-# enfermera la lista sin priorizar.
-#
-# F2 conserva la prioridad sobre la sensibilidad, que sigue pesando el doble,
-# pero penaliza ese colapso de la precision.
-METRICA_SELECCION = "f2"
+# Se usa la sensibilidad: el objetivo del clasificador es dejar escapar la
+# menor cantidad posible de reingresos, y esa es la metrica que lo mide de
+# forma directa. La precision y el F2 se reportan junto a ella para dimensionar
+# el costo en seguimientos.
+METRICA_SELECCION = "sensibilidad"
 
 # Razon entre el costo de un falso negativo y el de un falso positivo. Se usa
 # para el analisis de costo del notebook; cada institucion tiene la suya.

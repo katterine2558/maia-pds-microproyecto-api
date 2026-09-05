@@ -1,7 +1,7 @@
 """Busqueda de hiperparametros del bosque aleatorio.
 
 La semana 5 pide desarrollar nuevas versiones del modelo, compararlas y
-seleccionar la mejor. Este modulo recorre una rejilla explicita y elige por
+seleccionar la mejor. Este modulo recorre una grid explicita y elige por
 validacion cruzada agrupada, de modo que el desempeno reportado siga siendo
 una estimacion honesta.
 
@@ -12,18 +12,18 @@ Cuatro decisiones sostienen esa honestidad:
    el mejor de cuarenta y ocho mirando evaluacion convertiria esa cifra en el
    maximo de cuarenta y ocho intentos.
 
-2. Los pliegues se arman con StratifiedGroupKFold sobre `patient_nbr`.
-   Agrupar evita que un mismo paciente quede a ambos lados de un pliegue, la
+2. Los folds se arman con StratifiedGroupKFold sobre `patient_nbr`.
+   Agrupar evita que un mismo paciente quede a ambos lados de un fold, la
    fuga que el EDA 8.1 documento; estratificar mantiene la proporcion de
    positivos, que con 11,4 % se desbalancea con facilidad.
 
 3. El preprocesamiento y el remuestreo viajan dentro del pipeline. SMOTE se
-   aplica al ajustar cada pliegue y nunca antes de particionar: hacerlo sobre
+   aplica al ajustar cada fold y nunca antes de particionar: hacerlo sobre
    el conjunto completo copiaria informacion de los pacientes de evaluacion
    hacia el entrenamiento.
 
-4. El umbral de decision se elige dentro de cada pliegue, con los datos de
-   ajuste de ese pliegue. Fijarlo mirando la particion de validacion seria la
+4. El umbral de decision se elige dentro de cada fold, con los datos de
+   ajuste de ese fold. Fijarlo mirando la particion de validacion seria la
    misma fuga en pequeno.
 
 Cada combinacion se registra como una corrida propia de MLflow. No se usa
@@ -31,7 +31,7 @@ GridSearchCV a proposito: colapsaria las cuarenta y ocho en una sola corrida y
 la vista de comparacion de la interfaz quedaria sin nada que comparar.
 
 Uso:
-    python -m src.models.busqueda --pliegues 5
+    python -m src.models.busqueda --folds 5
 """
 
 from __future__ import annotations
@@ -57,19 +57,19 @@ from src.models import particion as part
 
 EXPERIMENTO = "reingreso-30d-busqueda"
 
-# Rejilla explicita. Se prefiere a un muestreo aleatorio porque el reporte
+# Grid explicita. Se prefiere a un muestreo aleatorio porque el reporte
 # debe poder justificar el comportamiento observado en funcion de los valores
 # explorados, tal como pedia el Taller 4.
 # Cinco valores por hiperparametro. Se recorren de a uno, moviendo un
 # parametro a la vez desde una configuracion de partida y dejando los demas
 # fijos. Un producto cartesiano de cinco valores sobre cuatro parametros serian
-# 625 combinaciones, y con cinco pliegues y dos ajustes por pliegue no cabe en
+# 625 combinaciones, y con cinco folds y dos ajustes por fold no cabe en
 # el tiempo disponible.
 #
 # El barrido por coordenadas responde ademas lo que el Taller 4 pedia
 # justificar: como afecta cada parametro al desempeno. En un producto
 # cartesiano ese efecto queda confundido con el de los demas.
-REJILLA = {
+GRID = {
     # Peso de la clase positiva. Es el hiperparametro mas influyente: mueve la
     # sensibilidad de 0,015 a 0,998 mientras el ROC-AUC apenas varia 0,003, de
     # modo que no mejora el modelo sino que desplaza el corte.
@@ -78,10 +78,15 @@ REJILLA = {
     "max_depth": [6, 12, 18, 24, 32],
     "min_samples_leaf": [1, 5, 10, 25, 50],
     "min_samples_split": [2, 10, 25, 50, 100],
+    # Medida de impureza con que el nodo elige su particion. Se incluye porque
+    # es la decision que define como el arbol construye sus cortes, no solo
+    # hasta donde crece.
+    "criterion": ["gini", "entropy", "log_loss"],
 }
 
 # Configuracion de partida del barrido.
 PARTIDA = {
+    "criterion": "gini",
     "peso_positivo": 5,
     "n_estimators": 400,
     "max_depth": 18,
@@ -115,14 +120,14 @@ PARTIDA = {
 DESBALANCE = "peso"
 
 
-def combinaciones(rejilla: dict = REJILLA, partida: dict = PARTIDA) -> list[dict]:
+def combinaciones(grid: dict = GRID, partida: dict = PARTIDA) -> list[dict]:
     """Barrido por coordenadas: un parametro se mueve, los demas quedan fijos.
 
     Devuelve la configuracion de partida seguida de las variaciones de cada
     parametro, sin repetir el valor de partida.
     """
     candidatos = [dict(partida)]
-    for nombre, valores in rejilla.items():
+    for nombre, valores in grid.items():
         for valor in valores:
             if valor == partida[nombre]:
                 continue
@@ -138,28 +143,28 @@ def refinar(mejores: dict) -> list[dict]:
     """
     ejes = {nombre: sorted({mejores[nombre], *vecinos})
             for nombre, vecinos in (
-                (n, [v for v in REJILLA[n]
-                     if abs(REJILLA[n].index(v) - REJILLA[n].index(mejores[n])) == 1])
-                for n in REJILLA)}
+                (n, [v for v in GRID[n]
+                     if abs(GRID[n].index(v) - GRID[n].index(mejores[n])) == 1])
+                for n in GRID)}
     nombres = list(ejes)
     return [dict(zip(nombres, v)) for v in itertools.product(*(ejes[n] for n in nombres))]
 
 
-def evaluar_por_pliegues(
+def evaluar_por_folds(
     hiperparametros: dict,
     desbalance: str,
     X_ent: pd.DataFrame,
     y_ent: pd.Series,
     g_ent: pd.Series,
-    n_pliegues: int = 5,
+    n_folds: int = 5,
 ) -> dict:
-    """Entrena y evalua una combinacion en cada pliegue. Devuelve media y desviacion.
+    """Entrena y evalua una combinacion en cada fold. Devuelve media y desviacion.
 
-    Se reporta tambien la desviacion entre pliegues: sin ella, dos candidatos
+    Se reporta tambien la desviacion entre folds: sin ella, dos candidatos
     con la misma media no son distinguibles, porque uno puede ser estable y el
-    otro depender del pliegue que le toco.
+    otro depender del fold que le toco.
     """
-    division = part.validacion_cruzada(n_pliegues)
+    division = part.validacion_cruzada(n_folds)
     parametros = dict(hiperparametros)
     if desbalance == "class_weight":
         parametros["class_weight"] = "balanced_subsample"
@@ -198,7 +203,7 @@ def evaluar_por_pliegues(
     return resumen
 
 
-def buscar(n_pliegues: int = 5, desbalance: str = DESBALANCE,
+def buscar(n_folds: int = 5, desbalance: str = DESBALANCE,
            candidatos: list[dict] | None = None) -> pd.DataFrame:
     """Recorre los candidatos y registra cada combinacion en MLflow."""
     trabajo = cons.conjunto_de_trabajo(cons.cargar())
@@ -210,19 +215,19 @@ def buscar(n_pliegues: int = 5, desbalance: str = DESBALANCE,
         raise RuntimeError("la particion no aisla a los pacientes: " + "; ".join(fugas))
 
     candidatos = candidatos or combinaciones()
-    print(f"{len(candidatos)} combinaciones x {n_pliegues} pliegues", flush=True)
+    print(f"{len(candidatos)} combinaciones x {n_folds} folds", flush=True)
 
     filas = []
     for i, hiperparametros in enumerate(candidatos, 1):
         inicio = time.time()
-        resumen = evaluar_por_pliegues(hiperparametros, desbalance,
-                                       X_ent, y_ent, g_ent, n_pliegues)
+        resumen = evaluar_por_folds(hiperparametros, desbalance,
+                                       X_ent, y_ent, g_ent, n_folds)
         duracion = time.time() - inicio
 
         etiqueta = "-".join(f"{k}={v}" for k, v in hiperparametros.items())
         with mlflow.start_run(run_name=f"bosque[{etiqueta}]"):
             mlflow.log_params({
-                "modelo": "bosque", "desbalance": desbalance, "n_pliegues": n_pliegues,
+                "modelo": "bosque", "desbalance": desbalance, "n_folds": n_folds,
                 "validacion": "StratifiedGroupKFold por patient_nbr",
                 "umbral_fijo": esq.UMBRAL_FIJO,
                 "metrica_seleccion": esq.METRICA_SELECCION,
@@ -245,7 +250,7 @@ def buscar(n_pliegues: int = 5, desbalance: str = DESBALANCE,
 
 
 def figura_busqueda(tabla: pd.DataFrame, destino: Path) -> None:
-    """Ordena los candidatos por F1, con su dispersion entre pliegues."""
+    """Ordena los candidatos por F1, con su dispersion entre folds."""
     d = tabla.sort_values(f"cv_{esq.METRICA_SELECCION}").reset_index(drop=True)
     fig, ax = plt.subplots(figsize=(6.4, 0.14 * len(d) + 1.4))
 
@@ -266,7 +271,7 @@ def figura_busqueda(tabla: pd.DataFrame, destino: Path) -> None:
 
 def main() -> None:
     lector = argparse.ArgumentParser(description=__doc__)
-    lector.add_argument("--pliegues", type=int, default=5)
+    lector.add_argument("--folds", type=int, default=5)
     lector.add_argument("--refinar", action="store_true",
                         help="segunda fase: producto cartesiano alrededor del mejor hallado")
     lector.add_argument("--desbalance", default=DESBALANCE, choices=ent.DESBALANCES)
@@ -280,16 +285,16 @@ def main() -> None:
         mlflow.set_tracking_uri(args.uri)
     mlflow.set_experiment(args.experimento)
 
-    tabla = buscar(args.pliegues, args.desbalance)
+    tabla = buscar(args.folds, args.desbalance)
 
     if args.refinar:
-        mejores = {k: tabla.iloc[0][k] for k in REJILLA}
+        mejores = {k: tabla.iloc[0][k] for k in GRID}
         mejores = {k: (int(v) if isinstance(v, (np.integer,)) else v)
                    for k, v in mejores.items()}
         print(f"\nrefinando alrededor de {mejores}", flush=True)
-        tabla = pd.concat([tabla, buscar(args.pliegues, args.desbalance,
+        tabla = pd.concat([tabla, buscar(args.folds, args.desbalance,
                                          refinar(mejores))], ignore_index=True)
-        tabla = tabla.drop_duplicates(subset=list(REJILLA)).sort_values(
+        tabla = tabla.drop_duplicates(subset=list(GRID)).sort_values(
             f"cv_{esq.METRICA_SELECCION}", ascending=False)
 
     with mlflow.start_run(run_name="resumen-busqueda"):
@@ -306,7 +311,7 @@ def main() -> None:
 
     if not args.sin_confirmar:
         mejor = tabla.iloc[0]
-        hp = {k: mejor[k] for k in REJILLA}
+        hp = {k: mejor[k] for k in GRID}
         # max_depth y demas vuelven como numpy; el constructor espera enteros.
         hp = {k: (int(v) if isinstance(v, (np.integer,)) else v) for k, v in hp.items()}
         mlflow.set_experiment(ent.EXPERIMENTO)

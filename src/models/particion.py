@@ -45,16 +45,16 @@ def particionar(
     )
 
 
-def validacion_cruzada(n_pliegues: int = 5, semilla: int = esq.SEMILLA):
+def validacion_cruzada(n_folds: int = 5, semilla: int = esq.SEMILLA):
     """Validacion cruzada que respeta grupos y preserva la proporcion de positivos.
 
     `StratifiedGroupKFold` es la unica de las dos que hace ambas cosas: sin
-    estratificar, con 11,4 % de positivos, un pliegue puede quedar con una
+    estratificar, con 11,4 % de positivos, un fold puede quedar con una
     proporcion sensiblemente distinta y la comparacion entre modelos pierde
     sentido.
     """
     return StratifiedGroupKFold(
-        n_splits=n_pliegues, shuffle=True, random_state=semilla
+        n_splits=n_folds, shuffle=True, random_state=semilla
     )
 
 

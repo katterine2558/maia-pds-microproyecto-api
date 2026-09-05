@@ -80,6 +80,9 @@ CATALOGO = {
             min_samples_leaf=k.get("min_samples_leaf", 10),
             min_samples_split=k.get("min_samples_split", 10),
             max_features=k.get("max_features", "sqrt"),
+            # Medida de impureza con que cada nodo elige su particion: Gini
+            # usa 1 - sum(p^2) y la entropia -sum(p log2 p).
+            criterion=k.get("criterion", "gini"),
             class_weight=k.get("class_weight", "balanced_subsample"),
             n_jobs=-1,
             random_state=esq.SEMILLA,
@@ -126,8 +129,8 @@ def armar_estimador(X, estimador, desbalance: str = "class_weight"):
     aparecen en la literatura y que no se sostienen en operacion.
 
     `imblearn.Pipeline` los aplica solo en `fit` y los omite en `predict`, de
-    modo que en validacion cruzada cada pliegue se remuestrea por separado con
-    los datos de ese pliegue y el conjunto de validacion nunca se toca.
+    modo que en validacion cruzada cada fold se remuestrea por separado con
+    los datos de ese fold y el conjunto de validacion nunca se toca.
     """
     preparacion = cons.construir_preprocesador(X)
 
@@ -347,8 +350,8 @@ def correr(
             "subconjunto": subconjunto or ("formulario" if solo_formulario else "completo"),
             **{f"hp_{k}": v for k, v in estimador.get_params().items()
                if k in ("n_estimators", "max_depth", "min_samples_leaf",
-                        "min_samples_split", "max_features", "class_weight",
-                        "strategy")},
+                        "min_samples_split", "max_features", "criterion",
+                        "class_weight", "strategy")},
         })
 
         mlflow.set_tags({

@@ -160,7 +160,7 @@ def evaluar(y_real, probabilidades, umbral: float = UMBRAL_POR_DEFECTO) -> dict:
 # --------------------------------------------------------------------------
 
 def barrido_umbral(y_real, probabilidades, umbrales=None) -> pd.DataFrame:
-    """Metricas de clasificacion a lo largo de una rejilla de umbrales.
+    """Metricas de clasificacion a lo largo de una grid de umbrales.
 
     El umbral forma parte del clasificador y no se hereda: 0,5 es el valor por
     defecto de `predict`, pero con 11,4 % de positivos casi ningun paciente lo
