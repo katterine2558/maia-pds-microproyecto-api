@@ -8,6 +8,10 @@ Antes de correr cualquier experimento:
     export MLFLOW_TRACKING_URI=http://<ip>:5000
     export MLFLOW_TRACKING_USERNAME=<usuario>
     export MLFLOW_TRACKING_PASSWORD=<clave>
+
+Opcional, cuando quien lanza la corrida no es quien escribio el modelo:
+
+    export MLFLOW_AUTOR=camilo
 """
 
 from __future__ import annotations
@@ -87,12 +91,22 @@ def corrida(nombre: str, familia: str, anidada: bool = False):
     "regresion-logistica"), para poder filtrarlas en la interfaz.
     """
 
+    # El autor del modelo no siempre es quien lanza la corrida. Con
+    # MLFLOW_AUTOR la corrida queda a nombre de quien desarrollo el modelo,
+    # que es la contribucion que evalua el curso.
+    autor = os.environ.get(
+        "MLFLOW_AUTOR",
+        os.environ.get("MLFLOW_TRACKING_USERNAME", "desconocido"),
+    )
+
     with mlflow.start_run(run_name=nombre, nested=anidada) as run:
         mlflow.set_tags(
             {
                 "familia": familia,
                 "commit": _commit_actual(),
-                "autor": os.environ.get("MLFLOW_TRACKING_USERNAME", "desconocido"),
+                "autor": autor,
+                # La interfaz de MLflow muestra este como "Created by".
+                "mlflow.user": autor,
             }
         )
         yield run
