@@ -1,194 +1,105 @@
-\# Regresión logística - Entrega 2
+# Regresión logística - Entrega 2
 
-
-
-\## Población y partición
-
-
+## Población y partición
 
 La población analítica contiene 99.343 encuentros correspondientes a 69.990 pacientes. La variable objetivo identifica el reingreso hospitalario dentro de los 30 días posteriores al alta.
 
+La partición se realizó por `patient_nbr`, evitando que encuentros del mismo paciente quedaran simultáneamente en entrenamiento, validación y prueba.
 
+- Entrenamiento: 63.670 encuentros, 44.793 pacientes, 11,39% positivos.
+- Validación: 15.852 encuentros, 11.199 pacientes, 11,69% positivos.
+- Prueba: 19.821 encuentros, 13.998 pacientes, 11,13% positivos.
+- Pacientes compartidos entre particiones: 0.
 
-La partición se realizó por `patient\_nbr`, evitando que encuentros del mismo paciente quedaran simultáneamente en entrenamiento, validación y prueba.
+## Selección y preparación de características
 
+Se definieron 32 predictores antes de la codificación. Se excluyeron identificadores, la variable objetivo original, `weight`, `payer_code`, variables reservadas para análisis de sesgo y medicamentos de muy baja frecuencia. Los diagnósticos `diag_1`, `diag_2` y `diag_3` se agruparon en categorías clínicas para reducir su alta cardinalidad.
 
+Las variables numéricas se estandarizaron. Los valores `?` se conservaron como categoría del dato original y las variables categóricas se codificaron mediante one-hot encoding.
 
-\- Entrenamiento: 63.670 encuentros, 44.793 pacientes, 11,39 % positivos.
+## Estrategia de validación
 
-\- Validación: 15.852 encuentros, 11.199 pacientes, 11,69 % positivos.
+Las primeras configuraciones se compararon utilizando el conjunto de validación. Los hiperparámetros, pesos de clase y umbral de decisión se seleccionaron sin utilizar el conjunto de prueba. Una vez fijada la configuración final de sensibilidad, el conjunto de prueba se utilizó para reportar su desempeño final.
 
-\- Prueba: 19.821 encuentros, 13.998 pacientes, 11,13 % positivos.
+## Versiones iniciales en validación
 
-\- Pacientes compartidos entre particiones: 0.
+### V1 - Regresión logística base
 
+- ROC-AUC: 0,6637
+- PR-AUC: 0,2207
+- Precision: 0,4353
+- Recall: 0,0200
+- F1: 0,0382
+- Accuracy: 0,8824
 
+La exactitud elevada se explica principalmente por el desbalance de clases. La versión base prácticamente no identifica reingresos.
 
-\## Versiones evaluadas
+### V2 - Regresión logística balanceada
 
+- ROC-AUC: 0,6655
+- PR-AUC: 0,2208
+- Precision: 0,1875
+- Recall: 0,5461
+- F1: 0,2792
+- Accuracy: 0,6703
 
+El balance de clases incrementó de forma importante la identificación de reingresos.
 
-\### V1 - Regresión logística base
+### V3 - Ajuste de regularización
 
+Se evaluaron valores de `C` iguales a 0,1; 0,5; 1,0; 2,0 y 10,0 sobre validación. El mejor resultado según PR-AUC correspondió a `C=0,5`.
 
+Resultados de V3 en validación:
 
-\- `class\_weight`: None
+- ROC-AUC: 0,6658
+- PR-AUC: 0,2208
+- Precision: 0,1869
+- Recall: 0,5440
+- F1: 0,2783
+- Accuracy: 0,6701
 
-\- `C`: 1,0
+La mejora frente a V2 fue marginal.
 
-\- ROC-AUC: 0,6591
+## Ajuste orientado a sensibilidad
 
-\- PR-AUC: 0,2140
+Posteriormente se evaluaron pesos adicionales para la clase positiva y distintos umbrales de decisión. El mejor peso según F2 de validación fue 5 y el mejor umbral fue 0,30.
 
-\- Precision: 0,4884
+### V5 - Configuración final orientada a sensibilidad
 
-\- Recall: 0,0190
+Resultados confirmados en prueba:
 
-\- F1: 0,0366
-
-\- Accuracy: 0,8886
-
-
-
-La elevada exactitud se explica principalmente por el desbalance de clases. La versión base identificó solo 42 de los 2.207 reingresos presentes en prueba.
-
-
-
-\### V2 - Regresión logística balanceada
-
-
-
-\- `class\_weight`: balanced
-
-\- `C`: 1,0
-
-\- ROC-AUC: 0,6594
-
-\- PR-AUC: 0,2142
-
-\- Precision: 0,1787
-
-\- Recall: 0,5360
-
-\- F1: 0,2680
-
-\- Accuracy: 0,6740
-
-
-
-El balance de clases aumentó de forma importante la identificación de reingresos, al pasar de 1,9 % a 53,6 % de recall.
-
-
-
-\### V3 - Regresión logística balanceada con ajuste de regularización
-
-
-
-Se evaluaron los valores de `C`: 0,1; 0,5; 1,0; 2,0 y 10,0 utilizando el conjunto de validación.
-
-
-
-El mejor resultado según PR-AUC de validación correspondió a `C = 0,5`.
-
-
-
-Resultados finales en prueba:
-
-
-
-\- `class\_weight`: balanced
-
-\- `C`: 0,5
-
-\- ROC-AUC: 0,6595
-
-\- PR-AUC: 0,2141
-
-\- Precision: 0,1789
-
-\- Recall: 0,5365
-
-\- F1: 0,2683
-
-\- Accuracy: 0,6741
-
-
-
-El ajuste de regularización produjo cambios pequeños frente a V2. La principal mejora observada frente a la versión base provino del balance de clases.
-
-
-
-\## Evaluación como herramienta de priorización
-
-
-
-El modelo V3 se evaluó también ordenando los encuentros por probabilidad estimada:
-
-
-
-\- Priorizar el 10 % superior captura el 22,84 % de los reingresos, con un lift de 2,28 veces la tasa base.
-
-\- Priorizar el 20 % captura el 37,29 % de los reingresos.
-
-\- Priorizar el 30 % captura el 49,21 % de los reingresos.
-
-\- Priorizar el 40 % captura el 59,67 % de los reingresos.
-
-\- Priorizar el 50 % captura el 69,78 % de los reingresos.
-
-
-
-Este análisis complementa las métricas tradicionales porque el propósito del prototipo es ordenar los egresos por riesgo para apoyar la priorización del seguimiento.
-
-## Ajustes orientados a sensibilidad
-
-Después de las primeras tres versiones se evaluaron configuraciones adicionales para mejorar la detección de reingresos.
-
-### V4 - Ajuste del peso de la clase positiva
-
-Se evaluaron pesos de 2, 3, 4 y 5 para la clase positiva. El mejor resultado de validación según F2 se obtuvo con peso positivo igual a 5.
-
-### V5 - Peso de clase y ajuste del umbral
-
-Sobre la configuración anterior se evaluaron umbrales entre 0,20 y 0,50. El mejor F2 de validación se obtuvo con umbral 0,30.
-
-Resultados en prueba:
-
+- `C`: 0,5
 - Peso positivo: 5
-- C: 0,5
 - Umbral: 0,30
-- ROC-AUC: 0,6594
-- PR-AUC: 0,2143
-- Precision: 0,1387
-- Recall: 0,8201
-- F2: 0,4137
-- Accuracy: 0,4130
-- Verdaderos positivos: 1.810
-- Falsos negativos: 397
-- Falsos positivos: 11.237
-- Verdaderos negativos: 6.377
+- ROC-AUC: 0,6589
+- PR-AUC: 0,2133
+- Precision: 0,1400
+- Recall: 0,8156
+- F2: 0,4151
+- Accuracy: 0,4218
+- Verdaderos positivos: 1.800
+- Falsos negativos: 407
+- Falsos positivos: 11.053
+- Verdaderos negativos: 6.561
 
-El aumento del recall implica un costo importante en falsos positivos. Por esta razón esta configuración se interpreta como una alternativa orientada a sensibilidad y no como una mejora general de todas las métricas.
+La configuración final aumenta de forma importante la sensibilidad, a costa de un mayor número de falsos positivos.
 
-### V6 - Elastic Net y variables derivadas
+## V6 - Elastic Net y variables derivadas
 
-Se evaluó una versión con regularización Elastic Net y variables derivadas de utilización previa.
+Se evaluó una versión adicional con regularización Elastic Net y variables derivadas de utilización previa. Esta alternativa no superó de forma relevante la capacidad discriminativa observada en las versiones anteriores y no fue seleccionada como configuración final.
 
-Resultados en prueba con umbral 0,50:
+## Evaluación como herramienta de priorización
 
-- ROC-AUC: 0,6603
-- PR-AUC: 0,2139
-- Precision: 0,3211
-- Recall: 0,1382
-- F2: 0,1560
-- Accuracy: 0,8715
+La V5 también se evaluó como mecanismo de priorización por probabilidad estimada.
 
-Aunque V6 obtuvo el ROC-AUC más alto, la diferencia fue marginal y el PR-AUC no mejoró. Además, su recall con el umbral estándar fue considerablemente menor que el de V5. Por lo tanto, no se seleccionó como configuración final.
+- Priorizar el 10% superior captura el 22,97% de los reingresos, con precision de 25,58% y lift de 2,30x.
+- Priorizar el 20% captura el 36,93%.
+- Priorizar el 30% captura el 49,16%.
+- Priorizar el 40% captura el 59,67%.
+- Priorizar el 50% captura el 69,42%.
 
-## Selección de la regresión
+## Conclusión
 
-La configuración seleccionada para el uso operativo es V5, con peso positivo 5, C igual a 0,5 y umbral 0,30. La selección responde al objetivo de aumentar la detección de pacientes con reingreso temprano.
+El principal reto de la regresión fue el desbalance de la variable objetivo. La versión base alcanzó una exactitud elevada, pero prácticamente no identificó reingresos. El tratamiento del desbalance y el ajuste del punto de decisión permitieron elevar el recall hasta 81,56% en prueba.
 
-Sin embargo, para la priorización diaria se recomienda utilizar principalmente la probabilidad estimada como puntaje de riesgo y ordenar los egresos según la capacidad disponible, en lugar de depender exclusivamente de una clasificación binaria fija.
-
-La evaluación por capacidad mostró que el 10 % de mayor riesgo concentra el 22,84% de los reingresos y el 30% concentra aproximadamente el 49,4%.
+Este resultado implica un costo en falsos positivos, por lo que la configuración seleccionada se interpreta como una alternativa orientada a reducir falsos negativos. Para el uso operativo se recomienda utilizar la probabilidad estimada como puntaje de riesgo y definir la cantidad de pacientes priorizados de acuerdo con la capacidad disponible.

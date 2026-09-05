@@ -1,4 +1,19 @@
-"""Evalua el modelo de regresion como herramienta de priorizacion."""
+"""Evalua la regresion logistica como herramienta de priorizacion.
+
+Orden de ejecucion requerido:
+
+1. Ejecutar:
+   python -m src.models.regresion_logistica
+
+   Ese proceso genera:
+   docs/soportes/modelos/regresion_logistica/ajuste_regularizacion.csv
+
+2. Ejecutar:
+   python -m src.models.evaluacion_priorizacion
+
+El archivo ajuste_regularizacion.csv se utiliza para recuperar el valor
+de C seleccionado previamente sobre el conjunto de validacion.
+"""
 
 from __future__ import annotations
 
@@ -16,31 +31,81 @@ from src.models.regresion_logistica import (
 )
 
 
-ARCHIVO_AJUSTE = SALIDA / "ajuste_regularizacion.csv"
+ARCHIVO_AJUSTE = (
+    SALIDA
+    / "ajuste_regularizacion.csv"
+)
 
-PROPORCIONES = [0.10, 0.20, 0.30, 0.40, 0.50]
+PROPORCIONES = [
+    0.10,
+    0.20,
+    0.30,
+    0.40,
+    0.50,
+]
 
 
 def obtener_mejor_c() -> float:
-    """Recupera el valor de C elegido con el conjunto de validacion."""
+    """Recupera el C seleccionado previamente en validacion."""
 
-    ajuste = pd.read_csv(ARCHIVO_AJUSTE)
+    if not ARCHIVO_AJUSTE.exists():
+        raise FileNotFoundError(
+            "No existe ajuste_regularizacion.csv. "
+            "Ejecute primero: "
+            "python -m src.models.regresion_logistica"
+        )
+
+    ajuste = pd.read_csv(
+        ARCHIVO_AJUSTE
+    )
+
+    columnas_requeridas = {
+        "C",
+        "pr_auc_validacion",
+        "roc_auc_validacion",
+    }
+
+    faltantes = (
+        columnas_requeridas
+        - set(ajuste.columns)
+    )
+
+    if faltantes:
+        raise ValueError(
+            "ajuste_regularizacion.csv no contiene "
+            "las columnas requeridas: "
+            + ", ".join(
+                sorted(faltantes)
+            )
+        )
 
     mejor = ajuste.sort_values(
-        ["pr_auc_validacion", "roc_auc_validacion"],
+        [
+            "pr_auc_validacion",
+            "roc_auc_validacion",
+        ],
         ascending=False,
     ).iloc[0]
 
-    return float(mejor["C"])
+    return float(
+        mejor["C"]
+    )
 
 
 def evaluar_priorizacion() -> pd.DataFrame:
-    """Calcula cuanto riesgo se captura al priorizar por probabilidad."""
+    """Evalua cobertura y lift al priorizar por probabilidad estimada."""
 
     X, y, grupos, _ = preparar_datos()
 
-    conjuntos = dividir_por_paciente(X, y, grupos)
-    verificar_separacion(conjuntos)
+    conjuntos = dividir_por_paciente(
+        X,
+        y,
+        grupos,
+    )
+
+    verificar_separacion(
+        conjuntos
+    )
 
     mejor_c = obtener_mejor_c()
 
@@ -60,7 +125,9 @@ def evaluar_priorizacion() -> pd.DataFrame:
 
     evaluacion = pd.DataFrame(
         {
-            "y_real": conjuntos["y_prueba"].to_numpy(),
+            "y_real": conjuntos[
+                "y_prueba"
+            ].to_numpy(),
             "probabilidad": probabilidad,
         }
     ).sort_values(
@@ -68,81 +135,172 @@ def evaluar_priorizacion() -> pd.DataFrame:
         ascending=False,
     )
 
-    positivos_totales = int(evaluacion["y_real"].sum())
-    tasa_base = evaluacion["y_real"].mean()
+    positivos_totales = int(
+        evaluacion["y_real"].sum()
+    )
+
+    tasa_base = float(
+        evaluacion["y_real"].mean()
+    )
+
+    if positivos_totales == 0:
+        raise ValueError(
+            "El conjunto de prueba no contiene "
+            "casos positivos."
+        )
+
+    if tasa_base == 0:
+        raise ValueError(
+            "La tasa base del conjunto de prueba "
+            "es igual a cero."
+        )
 
     resultados = []
 
     for proporcion in PROPORCIONES:
-        cantidad = round(len(evaluacion) * proporcion)
 
-        priorizados = evaluacion.head(cantidad)
+        cantidad = round(
+            len(evaluacion)
+            * proporcion
+        )
 
-        positivos_capturados = int(priorizados["y_real"].sum())
+        priorizados = evaluacion.head(
+            cantidad
+        )
 
-        cobertura = positivos_capturados / positivos_totales
-        precision = priorizados["y_real"].mean()
-        lift = precision / tasa_base
+        positivos_capturados = int(
+            priorizados[
+                "y_real"
+            ].sum()
+        )
+
+        cobertura = (
+            positivos_capturados
+            / positivos_totales
+        )
+
+        precision = float(
+            priorizados[
+                "y_real"
+            ].mean()
+        )
+
+        lift = (
+            precision
+            / tasa_base
+        )
 
         resultados.append(
             {
-                "porcentaje_priorizado": proporcion * 100,
+                "C": mejor_c,
+                "porcentaje_priorizado": (
+                    proporcion * 100
+                ),
                 "pacientes_priorizados": cantidad,
-                "reingresos_capturados": positivos_capturados,
+                "reingresos_capturados": (
+                    positivos_capturados
+                ),
                 "cobertura_reingresos": cobertura,
                 "precision_en_priorizados": precision,
                 "lift_vs_tasa_base": lift,
             }
         )
 
-    tabla = pd.DataFrame(resultados)
+    tabla = pd.DataFrame(
+        resultados
+    )
 
-    SALIDA.mkdir(parents=True, exist_ok=True)
+    SALIDA.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     tabla.to_csv(
-        SALIDA / "evaluacion_priorizacion.csv",
+        SALIDA
+        / "evaluacion_priorizacion.csv",
         index=False,
     )
 
-    print("=== EVALUACION DE PRIORIZACION ===")
-    print(f"Mejor C utilizado: {mejor_c}")
-    print(f"Encuentros en prueba: {len(evaluacion):,}")
-    print(f"Reingresos reales en prueba: {positivos_totales:,}")
-    print(f"Tasa base: {tasa_base * 100:.2f} %\n")
+    print(
+        "=== EVALUACION DE PRIORIZACION ==="
+    )
+    print(
+        f"C seleccionado en validacion: "
+        f"{mejor_c}"
+    )
+    print(
+        f"Encuentros en prueba: "
+        f"{len(evaluacion):,}"
+    )
+    print(
+        f"Reingresos reales en prueba: "
+        f"{positivos_totales:,}"
+    )
+    print(
+        f"Tasa base: "
+        f"{tasa_base * 100:.2f} %"
+    )
+
+    print()
 
     salida = tabla.copy()
 
-    salida["porcentaje_priorizado"] = (
-        salida["porcentaje_priorizado"].map(
-            lambda x: f"{x:.0f} %"
+    salida[
+        "porcentaje_priorizado"
+    ] = salida[
+        "porcentaje_priorizado"
+    ].map(
+        lambda valor: (
+            f"{valor:.0f} %"
         )
     )
 
-    salida["cobertura_reingresos"] = (
-        salida["cobertura_reingresos"].map(
-            lambda x: f"{x * 100:.2f} %"
+    salida[
+        "cobertura_reingresos"
+    ] = salida[
+        "cobertura_reingresos"
+    ].map(
+        lambda valor: (
+            f"{valor * 100:.2f} %"
         )
     )
 
-    salida["precision_en_priorizados"] = (
-        salida["precision_en_priorizados"].map(
-            lambda x: f"{x * 100:.2f} %"
+    salida[
+        "precision_en_priorizados"
+    ] = salida[
+        "precision_en_priorizados"
+    ].map(
+        lambda valor: (
+            f"{valor * 100:.2f} %"
         )
     )
 
-    salida["lift_vs_tasa_base"] = (
-        salida["lift_vs_tasa_base"].map(
-            lambda x: f"{x:.2f}x"
+    salida[
+        "lift_vs_tasa_base"
+    ] = salida[
+        "lift_vs_tasa_base"
+    ].map(
+        lambda valor: (
+            f"{valor:.2f}x"
         )
     )
 
-    print(salida.to_string(index=False))
+    print(
+        salida.to_string(
+            index=False
+        )
+    )
 
-    print("\nResultados guardados en:")
+    print(
+        "\nResultados guardados en:"
+    )
     print(
         (
-            SALIDA / "evaluacion_priorizacion.csv"
-        ).relative_to(RAIZ)
+            SALIDA
+            / "evaluacion_priorizacion.csv"
+        ).relative_to(
+            RAIZ
+        )
     )
 
     return tabla

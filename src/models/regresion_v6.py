@@ -87,7 +87,13 @@ def agregar_variables(X: pd.DataFrame) -> pd.DataFrame:
     return X
 
 
-def construir_modelo(c, l1_ratio, peso):
+def construir_modelo(
+    c: float,
+    l1_ratio: float,
+    peso: int,
+) -> Pipeline:
+    """Construye la regresion logistica V6 con Elastic Net."""
+
     numericas = Pipeline(
         steps=[
             ("imputacion", SimpleImputer(strategy="median")),
@@ -97,10 +103,6 @@ def construir_modelo(c, l1_ratio, peso):
 
     categoricas = Pipeline(
         steps=[
-            (
-                "imputacion",
-                SimpleImputer(strategy="most_frequent"),
-            ),
             (
                 "onehot",
                 OneHotEncoder(
@@ -115,7 +117,8 @@ def construir_modelo(c, l1_ratio, peso):
         transformers=[
             ("num", numericas, VARIABLES_NUMERICAS_V6),
             ("cat", categoricas, VARIABLES_CATEGORICAS),
-        ]
+        ],
+        remainder="drop",
     )
 
     modelo = LogisticRegression(
@@ -126,7 +129,6 @@ def construir_modelo(c, l1_ratio, peso):
         class_weight={0: 1, 1: peso},
         max_iter=4000,
         random_state=SEMILLA,
-        n_jobs=-1,
     )
 
     return Pipeline(
@@ -137,34 +139,51 @@ def construir_modelo(c, l1_ratio, peso):
     )
 
 
-def metricas(y, prob, umbral=0.5):
-    pred = (prob >= umbral).astype(int)
+def metricas(
+    y,
+    probabilidad,
+    umbral: float = 0.5,
+) -> dict:
+    """Calcula metricas de clasificacion para un umbral dado."""
+
+    prediccion = (
+        probabilidad >= umbral
+    ).astype(int)
 
     tn, fp, fn, tp = confusion_matrix(
         y,
-        pred,
+        prediccion,
     ).ravel()
 
     return {
-        "roc_auc": roc_auc_score(y, prob),
-        "pr_auc": average_precision_score(y, prob),
+        "roc_auc": roc_auc_score(
+            y,
+            probabilidad,
+        ),
+        "pr_auc": average_precision_score(
+            y,
+            probabilidad,
+        ),
         "precision": precision_score(
             y,
-            pred,
+            prediccion,
             zero_division=0,
         ),
         "recall": recall_score(
             y,
-            pred,
+            prediccion,
             zero_division=0,
         ),
         "f2": fbeta_score(
             y,
-            pred,
+            prediccion,
             beta=2,
             zero_division=0,
         ),
-        "accuracy": accuracy_score(y, pred),
+        "accuracy": accuracy_score(
+            y,
+            prediccion,
+        ),
         "tp": int(tp),
         "fn": int(fn),
         "fp": int(fp),
@@ -172,7 +191,9 @@ def metricas(y, prob, umbral=0.5):
     }
 
 
-def ejecutar():
+def ejecutar() -> None:
+    """Busca la mejor configuracion V6 y la evalua en prueba."""
+
     X, y, grupos, _ = preparar_datos()
 
     X = agregar_variables(X)
@@ -190,12 +211,12 @@ def ejecutar():
     print("=== V6: BUSQUEDA ELASTIC NET ===")
 
     for c in VALORES_C:
-        for l1 in VALORES_L1:
+        for l1_ratio in VALORES_L1:
             for peso in PESOS:
 
                 modelo = construir_modelo(
                     c=c,
-                    l1_ratio=l1,
+                    l1_ratio=l1_ratio,
                     peso=peso,
                 )
 
@@ -204,29 +225,35 @@ def ejecutar():
                     conjuntos["y_entrenamiento"],
                 )
 
-                prob = modelo.predict_proba(
+                probabilidad_validacion = modelo.predict_proba(
                     conjuntos["X_validacion"]
                 )[:, 1]
 
-                m = metricas(
+                resultado = metricas(
                     conjuntos["y_validacion"],
-                    prob,
+                    probabilidad_validacion,
                     umbral=0.5,
                 )
 
                 resultados.append(
                     {
                         "C": c,
-                        "l1_ratio": l1,
+                        "l1_ratio": l1_ratio,
                         "peso": peso,
-                        **m,
+                        **resultado,
                     }
                 )
 
-    tabla = pd.DataFrame(resultados)
+    tabla = pd.DataFrame(
+        resultados
+    )
 
     mejores = tabla.sort_values(
-        ["pr_auc", "f2", "roc_auc"],
+        [
+            "pr_auc",
+            "f2",
+            "roc_auc",
+        ],
         ascending=False,
     )
 
@@ -238,18 +265,30 @@ def ejecutar():
 
     mejor = mejores.iloc[0]
 
-    mejor_c = float(mejor["C"])
-    mejor_l1 = float(mejor["l1_ratio"])
-    mejor_peso = int(mejor["peso"])
+    mejor_c = float(
+        mejor["C"]
+    )
+    mejor_l1_ratio = float(
+        mejor["l1_ratio"]
+    )
+    mejor_peso = int(
+        mejor["peso"]
+    )
 
     print("\nMejor configuracion:")
     print(f"C = {mejor_c}")
-    print(f"l1_ratio = {mejor_l1}")
-    print(f"peso positivo = {mejor_peso}")
+    print(
+        f"l1_ratio = "
+        f"{mejor_l1_ratio}"
+    )
+    print(
+        f"peso positivo = "
+        f"{mejor_peso}"
+    )
 
     modelo_final = construir_modelo(
         c=mejor_c,
-        l1_ratio=mejor_l1,
+        l1_ratio=mejor_l1_ratio,
         peso=mejor_peso,
     )
 
@@ -258,27 +297,44 @@ def ejecutar():
         conjuntos["y_desarrollo"],
     )
 
-    prob_test = modelo_final.predict_proba(
+    probabilidad_prueba = modelo_final.predict_proba(
         conjuntos["X_prueba"]
     )[:, 1]
 
-    # Primero medimos con umbral 0.50.
     final_05 = metricas(
         conjuntos["y_prueba"],
-        prob_test,
+        probabilidad_prueba,
         umbral=0.5,
     )
 
-    print("\n=== V6 EN PRUEBA - UMBRAL 0.50 ===")
+    print(
+        "\n=== V6 EN PRUEBA - "
+        "UMBRAL 0.50 ==="
+    )
 
     for clave, valor in final_05.items():
-        if isinstance(valor, float):
-            print(f"{clave}: {valor:.4f}")
+        if isinstance(
+            valor,
+            float,
+        ):
+            print(
+                f"{clave}: "
+                f"{valor:.4f}"
+            )
         else:
-            print(f"{clave}: {valor}")
+            print(
+                f"{clave}: "
+                f"{valor}"
+            )
+
+    SALIDA.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     tabla.to_csv(
-        SALIDA / "busqueda_v6_elasticnet.csv",
+        SALIDA
+        / "busqueda_v6_elasticnet.csv",
         index=False,
     )
 
@@ -286,7 +342,7 @@ def ejecutar():
         [
             {
                 "C": mejor_c,
-                "l1_ratio": mejor_l1,
+                "l1_ratio": mejor_l1_ratio,
                 "peso": mejor_peso,
                 **final_05,
             }
@@ -299,56 +355,3 @@ def ejecutar():
 
 if __name__ == "__main__":
     ejecutar()
-
-## Ajustes orientados a sensibilidad
-
-Después de las primeras tres versiones se evaluaron configuraciones adicionales para mejorar la detección de reingresos.
-
-### V4 - Ajuste del peso de la clase positiva
-
-Se evaluaron pesos de 2, 3, 4 y 5 para la clase positiva. El mejor resultado de validación según F2 se obtuvo con peso positivo igual a 5.
-
-### V5 - Peso de clase y ajuste del umbral
-
-Sobre la configuración anterior se evaluaron umbrales entre 0,20 y 0,50. El mejor F2 de validación se obtuvo con umbral 0,30.
-
-Resultados en prueba:
-
-- Peso positivo: 5
-- C: 0,5
-- Umbral: 0,30
-- ROC-AUC: 0,6594
-- PR-AUC: 0,2143
-- Precision: 0,1387
-- Recall: 0,8201
-- F2: 0,4137
-- Accuracy: 0,4130
-- Verdaderos positivos: 1.810
-- Falsos negativos: 397
-- Falsos positivos: 11.237
-- Verdaderos negativos: 6.377
-
-El aumento del recall implica un costo importante en falsos positivos. Por esta razón esta configuración se interpreta como una alternativa orientada a sensibilidad y no como una mejora general de todas las métricas.
-
-### V6 - Elastic Net y variables derivadas
-
-Se evaluó una versión con regularización Elastic Net y variables derivadas de utilización previa.
-
-Resultados en prueba con umbral 0,50:
-
-- ROC-AUC: 0,6603
-- PR-AUC: 0,2139
-- Precision: 0,3211
-- Recall: 0,1382
-- F2: 0,1560
-- Accuracy: 0,8715
-
-Aunque V6 obtuvo el ROC-AUC más alto, la diferencia fue marginal y el PR-AUC no mejoró. Además, su recall con el umbral estándar fue considerablemente menor que el de V5. Por lo tanto, no se seleccionó como configuración final.
-
-## Selección de la regresión
-
-La configuración seleccionada para el uso operativo es V5, con peso positivo 5, C igual a 0,5 y umbral 0,30. La selección responde al objetivo de aumentar la detección de pacientes con reingreso temprano.
-
-Sin embargo, para la priorización diaria se recomienda utilizar principalmente la probabilidad estimada como puntaje de riesgo y ordenar los egresos según la capacidad disponible, en lugar de depender exclusivamente de una clasificación binaria fija.
-
-La evaluación por capacidad mostró que el 10 % de mayor riesgo concentra el 22,84 % de los reingresos y el 30 % concentra aproximadamente el 49,4 %.
