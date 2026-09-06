@@ -83,8 +83,6 @@ en Git viaja unicamente el puntero.
 
 ## 2. Modelos desarrollados y su evaluacion
 
-*(texto de Camilo, ya redactado — revisar y recortar si excede el presupuesto)*
-
 A partir de la base analitica definida en la Entrega 1 se desarrollo una
 regresion logistica para estimar el riesgo de reingreso hospitalario antes de
 30 dias.
@@ -114,9 +112,7 @@ positiva, ajuste del umbral de decision y una alternativa con Elastic Net.
 | V6 | Validacion | Elastic Net + utilizacion previa | 0,6658 | 0,2195 | 13,01% |
 | **V5** | **Prueba** | **Peso positivo=5; umbral=0,30** | **0,6589** | **0,2133** | **81,56%** |
 
-Las seis versiones se registraron en MLflow: los barridos de regularizacion,
-peso y umbral, y una rejilla completa de 75 combinaciones para Elastic Net. La fila de V6 corresponde a su mejor configuracion por PR-AUC
-(C=0,5, l1_ratio=0,5, peso positivo=3).
+Las seis versiones y sus barridos de selección se registraron en MLflow. Adicionalmente, la configuración seleccionada de V5 se registró como `V5_final_prueba`, utilizando el conjunto de prueba exclusivamente para confirmar el desempeño final. Esta corrida conserva C=0,5, peso positivo=5 y umbral=0,30, con un recall de 81,56%. Para V6 se ejecutó una rejilla completa de 75 combinaciones de Elastic Net. La fila de V6 corresponde a su mejor configuración por PR-AUC en validación (C=0,5, l1_ratio=0,5, peso positivo=3).
 
 ![Recall y precision contra el umbral de decision](figuras/entrega-2-umbral-recall-precision.png)
 
@@ -128,8 +124,6 @@ umbrales mas altos.
 ---
 
 ## 3. Observaciones y conclusiones sobre los modelos
-
-*(texto de Camilo)*
 
 El desbalance tuvo un efecto directo sobre la regresion base, que alcanzo una
 exactitud alta pero apenas 2,00% de recall en validacion. El balanceo y el
@@ -150,8 +144,8 @@ disponible.
 El registro sistematico de los experimentos permite una observacion que no es
 visible al comparar solo la configuracion final. **Ninguna de las variantes
 mejoro la capacidad de ordenamiento del modelo.** El PR-AUC en validacion se
-mantiene entre 0,2165 y 0,2209 a lo largo de las 93 corridas con metricas: el
-barrido de regularizacion entre C=0,1 y C=10 lo mueve 0,00053; el barrido del
+mantiene entre 0,2165 y 0,2209 a lo largo de las 93 corridas de seleccion y comparacion en validación.
+El barrido de regularizacion entre C=0,1 y C=10 lo mueve 0,00053; el barrido del
 peso de la clase positiva lo deja practicamente constante en 0,2209; y la
 rejilla completa de 75 combinaciones de Elastic Net con variables derivadas de
 utilizacion previa va de 0,2165 a 0,2195, es decir que su mejor configuracion
