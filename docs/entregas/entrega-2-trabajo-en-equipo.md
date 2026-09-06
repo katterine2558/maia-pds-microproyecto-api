@@ -43,9 +43,17 @@ importancia de permutacion y evaluacion con calibracion. Cuaderno de analisis
 ejecutado.
 *Evidencia: rama `features/trees-random-boost-la`, pull request #6.*
 
-**Rainer Solano** — `Entrega 1.` Diseno de la arquitectura de la solucion. Documento `INFRA-V-0.0.1.md` con la propuesta de infraestructura y los diagramas de arquitectura de desarrollo y produccion. Desarrollo del tablero. Evidencia: rama feature/infra-delivery-baseline-arq, pull request [#3](https://github.com/katterine2558/maia-pds-microproyecto-api/pull/3), repositorio maia-pds-microproyecto-ui. `Entrega 2.` Diseño de la arquitectura de software para el tablero, estructura modular de vistas, componentes y servicios, diseño de CSS, traducción de experiencia de usuario HTML de maquetas a `arquitectura streamlit`, despliegue a Railway para validación inicial.
-*Evidencia: commits [working look and feel](https://github.com/katterine2558/maia-pds-microproyecto-ui/commit/ac5a2622889488566818cabc06b2e7f85d1ba494), [fix invoke fake api](https://github.com/katterine2558/maia-pds-microproyecto-ui/commit/734f8ef3afd5c96bd9b4dd6b077417a7297f8b22).*
-*Evidencia: pull request [#1](https://github.com/katterine2558/maia-pds-microproyecto-ui/pull/1).*
+**Rainer Solano** — Arquitectura de la solucion: documento `INFRA-V-0.0.1.md`
+con la propuesta de infraestructura y los diagramas de desarrollo y produccion.
+Arquitectura de software del tablero: estructura modular de vistas, componentes
+y servicios, diseno del CSS, traduccion de la maqueta HTML a Streamlit y
+despliegue en Railway para validacion inicial. Redacto la seccion del tablero
+del reporte.
+*Evidencia: rama `feature/infra-delivery-baseline-arq` y pull requests
+[#3](https://github.com/katterine2558/maia-pds-microproyecto-api/pull/3) y
+[#10](https://github.com/katterine2558/maia-pds-microproyecto-api/pull/10) en
+`-api`; [PR #1](https://github.com/katterine2558/maia-pds-microproyecto-ui/pull/1)
+en `maia-pds-microproyecto-ui`.*
 
 **Katerine Arias** — Infraestructura de seguimiento de experimentos y
 coordinacion de las entregas. Servidor de MLflow sobre AWS EC2 con
