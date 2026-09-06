@@ -23,6 +23,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -195,7 +196,7 @@ def _figura_umbral(barrido: pd.DataFrame, umbral: float, destino: Path) -> None:
 
     for columna, color, etiqueta in [
         ("precision", "#2a78d6", "Precision"),
-        ("sensibilidad", "#c8532b", "Sensibilidad"),
+        ("recall", "#c8532b", "Sensibilidad"),
         ("f1", "#0b0b0b", "F1"),
     ]:
         ax.plot(barrido["umbral"], barrido[columna], color=color, linewidth=1.6, label=etiqueta)
@@ -363,6 +364,15 @@ def correr(
             registrar_artefactos(y_eva, probabilidades, umbral, carpeta)
             mlflow.log_artifacts(str(carpeta), artifact_path="evaluacion")
 
+        # El artefacto del modelo pesa 23 MB y el servidor compartido del
+        # equipo, con 1 GB de RAM, se cuelga o responde 500 al recibirlo. Como
+        # la Entrega 2 se califica sobre los experimentos y sus metricas, la
+        # subida queda detras de una variable de entorno; se activa cuando haga
+        # falta cargar el modelo desde la API, que es asunto de la Entrega 3.
+        if os.environ.get("MLFLOW_SUBIR_MODELO") != "1":
+            resultados["run_id"] = mlflow.active_run().info.run_id
+            return resultados
+
         # El artefacto recibe el DataFrame sin transformar: la preparacion
         # viaja dentro y la API no tiene que reproducirla.
         ejemplo = X_eva.head(5)
@@ -407,7 +417,7 @@ def main() -> None:
         )
         print(f"{nombre:<9} umbral {r['umbral']:.2f}  "
               f"exactitud {r['exactitud']:.3f}  precision {r['precision']:.3f}  "
-              f"sensibilidad {r['recall']:.3f}  F1 {r['f1']:.3f}  "
+              f"recall {r['recall']:.3f}  F1 {r['f1']:.3f}  "
               f"bal {r['exactitud_balanceada']:.3f}  roc {r['roc_auc']:.3f}")
 
 
