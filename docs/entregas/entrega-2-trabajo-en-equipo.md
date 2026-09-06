@@ -43,11 +43,11 @@ importancia de permutacion y evaluacion con calibracion. Cuaderno de analisis
 ejecutado.
 *Evidencia: rama `features/trees-random-boost-la`, pull request #6.*
 
-**Rainer Solano** — Diseno de la arquitectura de la solucion. Documento
-`INFRA-V-0.0.1.md` con la propuesta de infraestructura y los diagramas de
-arquitectura de desarrollo y produccion. Desarrollo del tablero.
-*Evidencia: rama `feature/infra-delivery-baseline-arq`, pull request #3,
-repositorio `maia-pds-microproyecto-ui`.*
+**Rainer Solano** — Diseño de la arquitectura de software para el tablero, estructura
+modular de vistas, componentes y servicios, diseño de CSS, traducción de experiencia de 
+usuario HTML de maquetas a `arquietctura streamlit`, despliegue a Railway para validación inicial.
+*Evidencia: commits `https://github.com/katterine2558/maia-pds-microproyecto-ui/commit/ac5a2622889488566818cabc06b2e7f85d1ba494`,`https://github.com/katterine2558/maia-pds-microproyecto-ui/commit/734f8ef3afd5c96bd9b4dd6b077417a7297f8b22`.*
+*Evidencia: pull requests `https://github.com/katterine2558/maia-pds-microproyecto-ui/pull/1`.*
 
 **Katerine Arias** — Infraestructura de seguimiento de experimentos y
 coordinacion de las entregas. Servidor de MLflow sobre AWS EC2 con
