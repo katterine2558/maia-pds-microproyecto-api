@@ -386,7 +386,7 @@ def main() -> None:
                         help="elige el umbral por validacion en vez de usar el fijo")
     lector.add_argument("--criterio-umbral", default=esq.CRITERIO_UMBRAL,
                         choices=["f1", "f2", "f05", "exactitud_balanceada",
-                                 "sensibilidad", "precision"])
+                                 "recall", "precision"])
     lector.add_argument("--solo-formulario", action="store_true")
     lector.add_argument("--experimento", default=EXPERIMENTO)
     lector.add_argument("--uri", default=None)
@@ -407,7 +407,7 @@ def main() -> None:
         )
         print(f"{nombre:<9} umbral {r['umbral']:.2f}  "
               f"exactitud {r['exactitud']:.3f}  precision {r['precision']:.3f}  "
-              f"sensibilidad {r['sensibilidad']:.3f}  F1 {r['f1']:.3f}  "
+              f"sensibilidad {r['recall']:.3f}  F1 {r['f1']:.3f}  "
               f"bal {r['exactitud_balanceada']:.3f}  roc {r['roc_auc']:.3f}")
 
 

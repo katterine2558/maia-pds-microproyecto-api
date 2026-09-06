@@ -27,7 +27,7 @@ from pathlib import Path
 import mlflow
 import pandas as pd
 from sklearn.metrics import (
-    accuracy_score, average_precision_score, f1_score,
+    accuracy_score, average_precision_score, f1_score, fbeta_score,
     precision_score, recall_score, roc_auc_score,
 )
 
@@ -78,6 +78,9 @@ def metricas_completas(nombre: str, y_real, probabilidades, umbral: float) -> di
         "precision": precision_score(y_real, y_predicho, zero_division=0),
         "recall": recall_score(y_real, y_predicho, zero_division=0),
         "f1": f1_score(y_real, y_predicho, zero_division=0),
+        # F2 pesa el doble la sensibilidad: es el criterio del proyecto y debe
+        # aparecer en todas las corridas para poder compararlas entre si.
+        "f2": fbeta_score(y_real, y_predicho, beta=2, zero_division=0),
         "accuracy": accuracy_score(y_real, y_predicho),
         **conteos,
     }
@@ -167,6 +170,12 @@ def main() -> None:
         mlflow.log_artifact(str(destino), artifact_path="escenarios")
         mejor = tabla.loc[tabla["cv_recall"].idxmax()]
         mlflow.set_tag("escenario_elegido", mejor["modelo"])
+        # Resumen en el padre: permite leer el mejor de cada barrido en la
+        # tabla de la interfaz sin desplegar las corridas hijas.
+        mlflow.log_metrics({"mejor_recall": float(mejor["recall"]),
+                            "mejor_f2": float(mejor["f2"]),
+                            "mejor_precision": float(mejor["precision"]),
+                            "mejor_falsos_negativos": float(mejor["falsos_negativos"])})
 
     print(f"\n{tabla.to_string(index=False)}")
     print(f"\nescenario elegido por recall de validacion cruzada: {mejor['modelo']}")

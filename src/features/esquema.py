@@ -221,7 +221,7 @@ UMBRAL_FIJO = 0.30
 # menor cantidad posible de reingresos, y esa es la metrica que lo mide de
 # forma directa. La precision y el F2 se reportan junto a ella para dimensionar
 # el costo en seguimientos.
-METRICA_SELECCION = "sensibilidad"
+METRICA_SELECCION = "recall"
 
 # Razon entre el costo de un falso negativo y el de un falso positivo. Se usa
 # para el analisis de costo del notebook; cada institucion tiene la suya.

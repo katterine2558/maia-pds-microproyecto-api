@@ -71,7 +71,7 @@ def comparar(criterio: str = esq.CRITERIO_UMBRAL) -> pd.DataFrame:
             "tecnica": tecnica,
             "umbral": resultados["umbral"],
             "f2": resultados["f2"],
-            "sensibilidad": resultados["sensibilidad"],
+            "recall": resultados["recall"],
             "precision": resultados["precision"],
             "f1": resultados["f1"],
             "falsos_negativos": resultados["falsos_negativos"],
@@ -80,7 +80,7 @@ def comparar(criterio: str = esq.CRITERIO_UMBRAL) -> pd.DataFrame:
             "segundos": round(time.time() - inicio, 1),
         })
         print(f"  {tecnica:<15} F2 {resultados['f2']:.4f}   "
-              f"sensibilidad {resultados['sensibilidad']:.4f}   "
+              f"sensibilidad {resultados['recall']:.4f}   "
               f"FN {resultados['falsos_negativos']:>5}", flush=True)
 
     # Se ordena por la metrica de seleccion configurada, no por una fija: el
@@ -117,7 +117,7 @@ def figura_comparacion(tabla: pd.DataFrame, destino: Path) -> None:
 def main() -> None:
     lector = argparse.ArgumentParser(description=__doc__)
     lector.add_argument("--criterio", default=esq.CRITERIO_UMBRAL,
-                        choices=["f2", "f1", "f05", "sensibilidad", "exactitud_balanceada"])
+                        choices=["f2", "f1", "f05", "recall", "exactitud_balanceada"])
     lector.add_argument("--experimento", default=EXPERIMENTO)
     lector.add_argument("--uri", default=None)
     args = lector.parse_args()
@@ -136,7 +136,7 @@ def main() -> None:
         tabla = comparar(args.criterio)
         mejor = tabla.iloc[0]
         mlflow.log_metrics({"mejor_f2": mejor["f2"],
-                            "mejor_sensibilidad": mejor["sensibilidad"],
+                            "mejor_recall": mejor["recall"],
                             "mejor_precision": mejor["precision"],
                             "mejor_falsos_negativos": mejor["falsos_negativos"]})
         mlflow.set_tag("tecnica_elegida", mejor["tecnica"])

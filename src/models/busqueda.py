@@ -183,7 +183,7 @@ def evaluar_por_folds(
     elif desbalance != "peso":
         parametros.setdefault("peso_positivo", None)
 
-    puntajes = {"sensibilidad": [], "precision": [], "f2": [], "f1": [],
+    puntajes = {"recall": [], "precision": [], "f2": [], "f1": [],
                 "exactitud_balanceada": [], "roc_auc": [], "pr_auc": [],
                 "falsos_negativos": [], "falsos_positivos": []}
 
@@ -283,7 +283,7 @@ def _recorrer(candidatos, desbalance, n_folds, X_ent, y_ent, g_ent,
         filas.append({**hiperparametros, "desbalance": desbalance, **resumen,
                       "segundos": round(duracion, 1)})
         print(f"  [{i:>2}/{len(candidatos)}] {etiqueta:<28} "
-              f"recall {resumen['cv_sensibilidad']:.4f} +/- {resumen['cv_sensibilidad_desv']:.4f}   "
+              f"recall {resumen['cv_recall']:.4f} +/- {resumen['cv_recall_desv']:.4f}   "
               f"prec {resumen['cv_precision']:.4f}   FN {resumen['cv_falsos_negativos']:.0f}",
               flush=True)
 
@@ -356,9 +356,9 @@ def main() -> None:
         mlflow.set_experiment(ent.EXPERIMENTO)
         r = ent.correr("bosque", desbalance=args.desbalance,
                        hiperparametros=hp, subconjunto="ganador")
-        print(f"\nganador en el conjunto reservado:  recall {r['sensibilidad']:.4f}   "
+        print(f"\nganador en el conjunto reservado:  recall {r['recall']:.4f}   "
               f"precision {r['precision']:.4f}   FN {r['falsos_negativos']}   "
-              f"(validacion cruzada: recall {mejor['cv_sensibilidad']:.4f})")
+              f"(validacion cruzada: recall {mejor['cv_recall']:.4f})")
 
 
 if __name__ == "__main__":

@@ -78,7 +78,9 @@ def evaluar_clase(y_real, y_predicho) -> dict:
         **conteos,
         "exactitud": round(accuracy_score(y_real, y_predicho), 4),
         "precision": round(precision_score(y_real, y_predicho, zero_division=0), 4),
-        "sensibilidad": round(recall_score(y_real, y_predicho, zero_division=0), 4),
+        # Se registra como "recall" para que todas las familias de modelos del
+        # proyecto compartan el nombre de la metrica y sean ordenables juntas.
+        "recall": round(recall_score(y_real, y_predicho, zero_division=0), 4),
         "especificidad": round(vn / (vn + fp), 4) if (vn + fp) else 0.0,
         "f1": round(f1_score(y_real, y_predicho, zero_division=0), 4),
         # F2 pesa el doble la sensibilidad: sirve cuando el error caro es el
