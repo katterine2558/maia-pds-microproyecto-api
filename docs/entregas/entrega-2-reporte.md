@@ -121,6 +121,56 @@ sobre la version con peso positivo 5. El umbral seleccionado (0,30) es el punto
 donde el recall todavia supera el 80% antes de la caida pronunciada de los
 umbrales mas altos.
 
+### Bosque aleatorio
+
+En paralelo se desarrollo un bosque aleatorio sobre la misma base analitica,
+con dos decisiones que lo hacen comparable con la regresion: el conjunto
+reservado es el mismo (19.821 encuentros, 2.207 reingresos) y el manejo del
+desbalance se fija en peso 5 para la clase positiva con umbral 0,30, los mismos
+valores de la version V5. Los escenarios se comparan entre si por recall de
+validacion cruzada de cinco pliegues agrupada por paciente, dentro del conjunto
+de entrenamiento; el reservado se usa una sola vez, para reportar.
+
+Se recorrieron cuatro configuraciones del arbol, de menos a mas regulado:
+
+| Escenario | Cambio principal | ROC-AUC | PR-AUC | Recall | Precision |
+|---|---|---|---|---|---|
+| V1 | Sin restricciones | 0,6607 | 0,2077 | 27,50% | 23,50% |
+| **V2** | **Profundidad maxima 12** | **0,6673** | **0,2123** | **90,48%** | **12,83%** |
+| V3 | Minimo 50 casos por hoja | 0,6634 | 0,2049 | 92,75% | 12,50% |
+| V4 | Criterio de entropia sobre V3 | 0,6636 | 0,2060 | 92,25% | 12,49% |
+
+Sobre el escenario V2 se contrastaron ademas siete formas de manejar el
+desbalance, seleccionando por F2 —que pesa el doble la sensibilidad, porque el
+falso negativo es el error caro. Ninguna tecnica de remuestreo supero al
+ponderado simple: entrenar sobre la distribucion original deja el recall en
+1,99%; el submuestreo lo lleva a 99,28% pero con precision de 11,37%, apenas por
+encima de la prevalencia; y NearMiss degrada el ordenamiento, con ROC-AUC de
+0,5633 frente a 0,66-0,67 de todas las demas. El remuestreo se aplica dentro del
+pipeline: hacerlo antes de particionar copiaria informacion de los pacientes de
+evaluacion hacia el entrenamiento.
+
+### Comparacion y seleccion entre familias
+
+| Modelo | ROC-AUC | PR-AUC | Recall | Precision | Falsos negativos |
+|---|---|---|---|---|---|
+| Regresion logistica V5 | 0,6589 | 0,2133 | 81,56% | 14,00% | 407 |
+| Bosque aleatorio V2 | 0,6673 | 0,2123 | 90,48% | 12,83% | 210 |
+
+Sobre el mismo conjunto reservado y el mismo umbral, las dos familias quedan
+practicamente empatadas en capacidad de ordenamiento: 0,0084 de ROC-AUC y 0,0010
+de PR-AUC las separan. Lo que difiere es el punto de operacion. El bosque deja
+escapar 210 reingresos frente a 407 de la regresion, y a cambio consume mas
+cupos de seguimiento por cada acierto.
+
+**Se selecciona el bosque aleatorio V2 para empaquetar.** Con una capacidad de
+seguimiento fija, la diferencia que importa es cuantos reingresos quedan sin
+detectar, y el bosque reduce esa cifra casi a la mitad sin costo medible en
+ordenamiento. La regresion V5 se conserva como alternativa: es mas simple de
+servir y su precision es un punto mayor, de modo que si la capacidad operativa
+resulta mas estrecha de lo previsto, el cambio de familia esta justificado sin
+reprocesar nada.
+
 ---
 
 ## 3. Observaciones y conclusiones sobre los modelos
@@ -163,6 +213,31 @@ haber encontrado un modelo superior. Segunda: mejorar el desempeno requeriria
 trabajar sobre las variables o sobre la familia de modelos, no sobre los
 hiperparametros de la regresion logistica. Es el insumo natural para la
 siguiente iteracion.
+
+El bosque aleatorio se desarrollo por separado y llego a la misma conclusion por
+otro camino. A lo largo de los cuatro escenarios de arbol, las siete tecnicas de
+balanceo y los pesos de clase probados, **el ROC-AUC se mantuvo entre 0,656 y
+0,673**, con la unica excepcion de NearMiss, que lo degrada a 0,5633. Cambiar de
+familia de modelos tampoco movio el techo: la comparacion de la seccion anterior
+separa a las dos por menos de 0,01 de ROC-AUC. Que dos personas lo encontraran
+de forma independiente le da mas peso al hallazgo que si viniera de un solo
+experimento.
+
+Ese techo coincide con lo que reporta la literatura sobre este conjunto de datos
+(0,63-0,70) y con el desempeno del indice LACE, el instrumento clinico de
+referencia para predecir readmision (0,68-0,70). No es entonces un limite del
+modelamiento sino de la informacion disponible en los registros administrativos:
+lo que falta son variables que el dataset no trae.
+
+Lo que si movio la sensibilidad fue la profundidad del arbol, y de manera
+abrupta: de 27,50% sin restricciones a 90,48% limitandola a doce niveles, sin
+que el tamano del bosque ni el criterio de particion cambiaran nada apreciable.
+La causa no es solo el sobreajuste. Un arbol que memoriza produce probabilidades
+concentradas cerca de cero y de uno, de modo que un umbral fijo en 0,30 clasifica
+casi todo como negativo. Regular la profundidad devuelve probabilidades
+intermedias, y es sobre esas probabilidades que el tablero ordena la lista de
+egresos: si estan mal distribuidas, el orden que ve enfermeria deja de ser util
+aunque el ROC-AUC no se entere.
 
 ---
 
