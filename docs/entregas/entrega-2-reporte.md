@@ -168,13 +168,68 @@ siguiente iteracion.
 
 ## 4. Descripcion del tablero y la funcionalidad que ofrece
 
-**FALTA POR COMPLETO. Es entregable obligatorio de la Entrega 2.**
+En esta iteración se genera la primera versión de tablero `streamlit` basado en la
+maqueta inicial, estableciendo una arquitectura modular que plantea una separación de
+capas por vistas, componentes, configuración y servicio, de la misma manera se establece
+una paleta de colores que define el *look and feel* e identidad del producto. La capa
+API se mantiene separada como servicio independiente, y definida para poder integrar
+el frontend y backend en la siguiente iteración del proyecto. Una decisión importante
+que el equipo toma en esta iteración es mantener los repositorios de front y back 
+separados, esto beneficia la mantenibilidad al separar las responsabilidades y facilita la estrategia de entrega y despliegue continuo. El tablero cuenta con 3 menús:
 
-TODO — describir el tablero desarrollado de acuerdo con la maqueta
-(`docs/maqueta/`) y la funcionalidad que ofrece.
+- **Priorización**: Es un panel donde se van registrando los egresos programados, dicho 
+registro incluye 4 tarjetas que exhiben los egresos del día, la capacidad de seguimiento,
+la cobertura de riesgo estimada, y el riesgo de no cobertura. Se apoya en filtro y tablas
+para poder observar el detalle de esta información con filtros como la fecha de alta, servicio
+hospitalario y capacidad de seguimiento de pacientes.
 
-Recordar la frontera que exige el enunciado: el tablero consume el modelo
-**a traves de la API**, no importandolo.
+![Panel de priorizacion](figuras/entrega-2-01-visual-priorizacion.png)
+
+**Figura 2.** Vista de priorización. La línea de capacidad separa los pacientes
+que alcanzan el recurso del día de los que quedan por debajo, que es la
+decisión que el tablero apoya.
+
+- **Paciente**: Esta visual facilita el registro del paciente, y propone la captura
+de los datos para la predicción del modelo de ML, los campos son el rango de edad, tipo
+de admisión, servicio que da el alta, días de estancia, número de diagnósticos, número de
+medicamentos, ingresos previos (1 año), urgencias previas (1 año), resultado de A1C y cambio
+de medicación. Es en esta sección donde se debe invocar al api de predicciones en la
+siguiente iteración.
+
+![Panel de paciente](figuras/entrega-2-02-visual-paciente.png)
+
+**Figura 3.** Vista de paciente. El formulario ya envía el encuentro por HTTP a
+`POST /predict`; la tarjeta de resultado muestra valores ilustrativos porque el
+API que la responde es entregable de la semana 6.
+
+- **Contexto**: Es una visual analítica que muestra dónde se concentra el riesgo de reingreso,
+teniendo en cuenta criterios como tasa de reingreso < 30 días según ingresos previos, tasa de
+especialidad que da el alta, tasa por rango de edad. Se plantean gráficas de barras horizontales
+para visualizar este informe.
+
+![Panel de contexto](figuras/entrega-2-03-visual-contexto.png)
+
+**Figura 4.** Vista de contexto, con los hallazgos descriptivos de la Entrega 1
+puestos frente al usuario clínico.
+
+Las tres capturas corresponden a la ejecución local (`localhost:8501`). El
+tablero además está desplegado y accesible en
+[Railway](https://maia-pds-microproyecto-ui-production.up.railway.app), con una
+ruta por vista: `/`, `/paciente` y `/contexto`.
+
+## 4.1 Deuda técnica del tablero
+
+La validación del despliegue dejó a la vista tres defectos de tema que el
+ambiente local no mostraba: Streamlit resolvía sus colores según la preferencia
+del sistema de quien miraba, de modo que en modo oscuro los títulos y las cifras
+de las tarjetas quedaban blanco sobre blanco; el `sidebar` no se podía reabrir
+una vez colapsado; y el selector de unidad quedaba ilegible porque Streamlit
+1.63 cambió los `selectbox` de BaseWeb a react-aria. Los tres se corrigieron
+fijando el tema del tablero y cubriendo las dos marcas de selector.
+
+Que hayan aparecido solo en producción es el argumento a favor de la deuda que
+sí queda pendiente: no hay pruebas de front que atrapen regresiones visuales, y
+la integración con el API de inferencia se aborda en la semana 6.
 
 ---
 
@@ -183,7 +238,9 @@ Recordar la frontera que exige el enunciado: el tablero consume el modelo
 - [ ] Repositorio Git accesible, con evidencia de uso por parte de **cada**
       integrante via commits
 - [ ] Fuentes de los modelos desarrollados
-- [ ] Fuentes del tablero desarrollado
+- [ ] Fuentes del tablero desarrollado → https://github.com/katterine2558/maia-pds-microproyecto-ui
+- [ ] Evidencia de ejecucion del tablero → Figuras 2, 3 y 4 de la seccion 4
+      (ejecucion local en `localhost:8501`) y el despliegue en Railway
 - [ ] **Pantallazos de MLflow**, donde se vean el usuario y la IP de la maquina
       EC2, y la IP dentro de la interfaz de MLflow → `docs/entregas/figuras/`
 - [ ] Reporte de trabajo en equipo, **maximo 1 pagina**
