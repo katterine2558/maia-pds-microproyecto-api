@@ -175,39 +175,37 @@ siguiente iteracion.
 ## 4. Descripcion del tablero y la funcionalidad que ofrece
 
 En esta iteración se genera la primera versión de tablero `streamlit` basado en la
-maqueta inicial, estableciendo una arquiectura modular que plantea una separación de
+maqueta inicial, estableciendo una arquitectura modular que plantea una separación de
 capas por vistas, componentes, configuración y servicio, de la misma manera se establece
 una paleta de colores que define el *look and feel* e identidad del producto. La capa
 API se mantiene separada como servicio independiente, y definida para poder integrar
 el frontend y backend en la siguiente iteración del proyecto. Una decisión importante
 que el equipo toma en esta iteración es mantener los repositorios de front y back 
-separados. El tablero cuenta con 3 menús:
+separados, esto beneficia la mantenibilidad al separar las responsabilidades y facilita la estrategia de entrega y despliegue continuo. El tablero cuenta con 3 menús:
 
 - **Priorización**: Es un panel donde se van registrando los egresos programados, dicho 
 registro incluye 4 tarjetas que exhiben los egresos del día, la capacidad de seguimiento,
 la cobertura de riesgo estimada, y el riesgo de no cobertura. Se apoya en filtro y tablas
 para poder observar el detalle de esta información con filtros como la fecha de alta, servicio
-hospitalario y capacidad de seguimietno de pacientes. Enlace https://maia-pds-microproyecto-ui-production.up.railway.app/ 
+hospitalario y capacidad de seguimiento de pacientes. [Despliegue en Railway Visual priorización](https://maia-pds-microproyecto-ui-production.up.railway.app)
+
 
 - **Paciente**: Esta visual facilita el registro del paciente, y propone la captura
 de los datos para la predicción del modelo de ML, los campos son el rango de edad, tipo
 de admisión, servicio que da el alta, días de estancia, número de diagnósticos, número de
 medicamentos, ingresos previos (1 año), urgencias previas (1 año), resultado de A1C y cambio
 de medicación. Es en esta sección donde se debe invocar al api de predicciones en la
-siguinete iteración. Enlace https://maia-pds-microproyecto-ui-production.up.railway.app/paciente
+siguiente iteración. [Despliegue en Railway Visual Paciente](https://maia-pds-microproyecto-ui-production.up.railway.app/paciente) 
 
-- **Contexto**: Es una visual analítica que muestra dónde se concentra el riego de reingreso,
+- **Contexto**: Es una visual analítica que muestra dónde se concentra el riesgo de reingreso,
 teniendo en cuenta criterios como tasa de reingreso < 30 días según ingresos previos, tasa de
-espcialidad que da el alta, tasa por rango de edad. Se plantean gráficas de barras horizontales
-para visualizar este informe. Enlace https://maia-pds-microproyecto-ui-production.up.railway.app/contexto
+especialidad que da el alta, tasa por rango de edad. Se plantean gráficas de barras horizontales
+para visualizar este informe. [Despliegue en Railway Visual Paciente](https://maia-pds-microproyecto-ui-production.up.railway.app/contexto) 
 
 ## 4.1 Deuda técnica del tablero
 
-En la siguinete iteración se debe corregir un bug visual en el `background-color` de la seleección
-de unidad en el `sidebar`, debería ser transparente para mantener la consistencia visual con el resto
-de componentes, pero en realidad está saliendo en blanco, vale la pena aclarar que esto no ocurre en
-el ambiente local, pero esto plantea el interrogante si tiene sentido hacer pruebas unitarias en front
-para evitar que problemas similares pasen en producción.
+En la siguiente iteración se debe corregir un bug visual en el `background-color` de la selección
+de unidad en el `sidebar`, debería ser transparente para mantener la consistencia visual con el resto de componentes, pero en realidad está saliendo en blanco, vale la pena aclarar que esto no ocurre en el ambiente local, pero esto plantea el interrogante si tiene sentido hacer pruebas unitarias en front para evitar que problemas similares pasen en producción.
 
 ---
 
@@ -217,7 +215,12 @@ para evitar que problemas similares pasen en producción.
       integrante via commits
 - [ ] Fuentes de los modelos desarrollados
 - [ ] Fuentes del tablero desarrollado → https://github.com/katterine2558/maia-pds-microproyecto-ui
-- [ ] Evidenica de ejecución local de tablero → `docs/entregas/figuras/entrega-2-01-visual-priorizacion.png`, `docs/entregas/figuras/entrega-2-02-visual-paciente.png` y `docs/entregas/figuras/entrega-2-03-visual-contexto.png`
+- [ ] Evidencia de ejecución local de tablero → 
+
+![Panel de priorizacion](figuras/entrega-2-01-visual-priorizacion.png)
+![Panel de paciente](figuras/entrega-2-02-visual-paciente.png)
+![Panel de contexto](figuras/entrega-2-03-visual-contexto.png)
+
 - [ ] **Pantallazos de MLflow**, donde se vean el usuario y la IP de la maquina
       EC2, y la IP dentro de la interfaz de MLflow → `docs/entregas/figuras/`
 - [ ] Reporte de trabajo en equipo, **maximo 1 pagina**
