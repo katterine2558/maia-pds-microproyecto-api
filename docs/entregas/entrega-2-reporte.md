@@ -1,9 +1,9 @@
 ---
 title: "Prediccion de reingreso hospitalario temprano en pacientes diabeticos"
-subtitle: "Entrega 2 · Micro-proyecto · Desarrollo de Soluciones · MAIA, Universidad de los Andes"
+subtitle: "Entrega 2 · Micro-proyecto · Desarrollo de Soluciones · MAIA"
 author:
   - "Camilo Andres Rodriguez Duenas · Jasbyn Rainier Solano Carrillo · Leonardo Almanza Sanchez · Gineth Katerine Arias Carrillo"
-  - "Repositorios: github.com/katterine2558/maia-pds-microproyecto-api · github.com/katterine2558/maia-pds-microproyecto-ui"
+  - "Repositorios: katterine2558/maia-pds-microproyecto-api · katterine2558/maia-pds-microproyecto-ui"
 lang: es
 ---
 
