@@ -1,11 +1,6 @@
-# Entrega 2 — Reporte de trabajo en equipo
+# 6. Reporte de trabajo en equipo
 
-**Micro-proyecto · Desarrollo de Soluciones · MAIA — Universidad de los Andes**
-Camilo Andres Rodriguez Duenas · Jasbyn Rainier Solano Carrillo ·
-Leonardo Almanza Sanchez · Gineth Katerine Arias Carrillo
-
-
-## Como nos organizamos
+## 6.1 Como nos organizamos
 
 El trabajo se reparte por **item de trabajo**, no por persona: cada item vive en
 su propia rama `feature/*`, sale de `develop` y vuelve a `develop` mediante un
@@ -21,7 +16,7 @@ modelo de regresion logistica identifico un archivo que no compilaba, un umbral
 calibrado sobre un modelo distinto al final y una dependencia de orden de
 ejecucion no documentada; los tres se corrigieron antes del merge.
 
-## Quien hizo que
+## 6.2 Quien hizo que
 
 **Camilo Rodriguez** — Modelo de regresion logistica. Preparacion de
 caracteristicas, agrupacion de diagnosticos ICD-9, particion por paciente y las
@@ -56,7 +51,7 @@ MLflow; separacion del repositorio en codigo y tablero. Consolidacion del report
 *Evidencia: ramas `feature/infra-mlflow-ec2`, `feature/mlflow-experimentos`,
 `feature/reporte-entrega-2`, pull requests #5, #7 y #8.*
 
-## Como discutimos los resultados
+## 6.3 Como discutimos los resultados
 
 Las dos familias de modelos se desarrollaron en paralelo y por separado, y
 llegaron de forma independiente a la misma conclusion: ninguna tecnica de
