@@ -98,7 +98,7 @@ umbral y una alternativa con Elastic Net.
 
 Las seis versiones y sus barridos de selección se registraron en MLflow. Adicionalmente, la configuración seleccionada de V5 se registró como `V5_final_prueba`, utilizando el conjunto de prueba exclusivamente para confirmar el desempeño final. Esta corrida conserva C=0,5, peso positivo=5 y umbral=0,30, con un recall de 81,56%. Para V6 se ejecutó una rejilla completa de 75 combinaciones de Elastic Net. La fila de V6 corresponde a su mejor configuración por PR-AUC en validación (C=0,5, l1_ratio=0,5, peso positivo=3).
 
-![](figuras/entrega-2-umbral-recall-precision.png){width=4.8in}
+![](figuras/entrega-2-umbral-recall-precision.png){width=5.3in}
 
 **Figura 1.** Recall y precision en validacion segun el umbral de decision,
 sobre la version con peso positivo 5. El umbral seleccionado (0,30) es el punto
@@ -225,7 +225,7 @@ la cobertura de riesgo estimada, y el riesgo de no cobertura. Se apoya en filtro
 para poder observar el detalle de esta información con filtros como la fecha de alta, servicio
 hospitalario y capacidad de seguimiento de pacientes.
 
-![](figuras/entrega-2-01-visual-priorizacion.png){width=4.1in}
+![](figuras/entrega-2-01-visual-priorizacion.png){width=5.3in}
 
 **Figura 2.** Vista de priorización. La línea de capacidad separa los pacientes
 que alcanzan el recurso del día de los que quedan por debajo, que es la
@@ -238,7 +238,7 @@ medicamentos, ingresos previos (1 año), urgencias previas (1 año), resultado d
 de medicación. Es en esta sección donde se debe invocar al api de predicciones en la
 siguiente iteración.
 
-![](figuras/entrega-2-02-visual-paciente.png){width=4.1in}
+![](figuras/entrega-2-02-visual-paciente.png){width=5.3in}
 
 **Figura 3.** Vista de paciente. El formulario ya envía el encuentro por HTTP a
 `POST /predict`; la tarjeta de resultado muestra valores ilustrativos porque el
@@ -249,7 +249,7 @@ teniendo en cuenta criterios como tasa de reingreso < 30 días según ingresos p
 especialidad que da el alta, tasa por rango de edad. Se plantean gráficas de barras horizontales
 para visualizar este informe.
 
-![](figuras/entrega-2-03-visual-contexto.png){width=4.1in}
+![](figuras/entrega-2-03-visual-contexto.png){width=5.3in}
 
 **Figura 4.** Vista de contexto, con los hallazgos descriptivos de la Entrega 1
 puestos frente al usuario clínico.
@@ -294,13 +294,13 @@ instancia EC2 de AWS, compartido por el equipo y protegido con autenticacion.
 Cada corrida queda asociada al autor del modelo, de modo que las versiones de
 las dos familias se comparan en un mismo lugar.
 
-![](figuras/entrega-2-mlflow-ec2-ssh.png){width=3.6in}
+![](figuras/entrega-2-mlflow-ec2-ssh.png){width=6.2in}
 
 **Figura 5.** Sesion SSH contra la maquina EC2 que hospeda MLflow. Se ven el
 usuario `ubuntu`, el nombre de la instancia con su IP privada y la IP publica
 en el comando de conexion.
 
-![](figuras/entrega-2-mlflow-ec2-consola.png){width=3.6in}
+![](figuras/entrega-2-mlflow-ec2-consola.png){width=6.2in}
 
 **Figura 6.** Consola de AWS con la instancia `mlflow-maia` en ejecucion, su IP
 publica 3.224.107.117, la Elastic IP asociada y el usuario de la cuenta.
