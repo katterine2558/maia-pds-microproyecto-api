@@ -273,21 +273,45 @@ visuales, y la integración con el API se aborda en la semana 6.
 
 ---
 
-# 5. Repositorios y soporte de los experimentos
+# 5. Fuentes, repositorios y soporte de los experimentos
 
 El codigo vive en dos repositorios publicos, uno por unidad desplegable. La
 separacion vuelve estructural la frontera que exige el enunciado: el tablero no
 tiene forma de importar el modelo ni de cargar el artefacto serializado, solo
-puede hablar con la API por HTTP.
-
-| Repositorio | Contenido |
-|---|---|
-| [maia-pds-microproyecto-api](https://github.com/katterine2558/maia-pds-microproyecto-api) | Datos versionados con DVC, pipelines de procesamiento y entrenamiento, experimentos de MLflow, modelos y la API que los sirve |
-| [maia-pds-microproyecto-ui](https://github.com/katterine2558/maia-pds-microproyecto-ui) | Fuentes del tablero y sus artefactos de despliegue |
-
-El historial de commits de cada integrante se consulta en
+puede hablar con la API por HTTP. El historial de commits de cada integrante se
+consulta en
 [el repositorio principal](https://github.com/katterine2558/maia-pds-microproyecto-api/commits/main/)
 y en [el del tablero](https://github.com/katterine2558/maia-pds-microproyecto-ui/commits/main/).
+
+## 5.1 Fuentes de los modelos desarrollados
+
+En [maia-pds-microproyecto-api](https://github.com/katterine2558/maia-pds-microproyecto-api):
+
+| Ruta | Contenido |
+|---|---|
+| `src/features/` | Base analitica y matriz de diseno |
+| `src/models/particion.py` | Particion por paciente, sin pacientes compartidos entre conjuntos |
+| `src/models/regresion_logistica.py`, `busqueda.py`, `regresion_v6.py`, `optimizar_recall.py` | Versiones V1 a V6 de la regresion, rejillas de hiperparametros y ajuste de umbral |
+| `src/models/escenarios.py`, `balanceo.py` | Los cuatro escenarios del bosque aleatorio y las siete tecnicas de desbalance |
+| `src/models/metricas.py`, `evaluacion_priorizacion.py` | Metricas comunes a las dos familias y analisis de lift por capacidad |
+| `src/models/experimentos_mlflow.py` | Registro de corridas contra el servidor de MLflow en EC2 |
+| `notebooks/modelos.ipynb` | Cuaderno ejecutado del bosque aleatorio |
+| `docs/soportes/modelos/` | Metricas de cada version en CSV |
+
+## 5.2 Fuentes del tablero desarrollado
+
+En [maia-pds-microproyecto-ui](https://github.com/katterine2558/maia-pds-microproyecto-ui):
+
+| Ruta | Contenido |
+|---|---|
+| `app.py`, `config/` | Punto de entrada, navegacion y tema |
+| `views/` | `priorizacion.py`, `paciente.py` y `contexto.py`: una vista por pantalla de la maqueta |
+| `components/` | Tarjetas de metrica, tabla de priorizacion, graficos y barra lateral |
+| `services/api.py` | Unico punto de salida hacia la API; el tablero no importa el modelo |
+| `Dockerfile`, `railway.json`, `.streamlit/` | Artefactos de despliegue |
+| `ux-ui/` | Maqueta de la Entrega 1, contra la que se contrasta la implementacion |
+
+## 5.3 Experimentos en MLflow
 
 Los experimentos se registran en un servidor de MLflow montado sobre una
 instancia EC2 de AWS, compartido por el equipo y protegido con autenticacion.
@@ -303,7 +327,10 @@ en el comando de conexion.
 ![](figuras/entrega-2-mlflow-ec2-consola.png){width=6.2in}
 
 **Figura 6.** Consola de AWS con la instancia `mlflow-maia` en ejecucion, su IP
-publica 3.224.107.117, la Elastic IP asociada y el usuario de la cuenta.
+publica 3.224.107.117, la Elastic IP asociada y el usuario de la cuenta. Al
+cierre de la entrega la instancia queda **detenida**, no terminada, para que
+pueda verificarse despues; la constancia esta en
+`docs/soportes/ec2-mlflow-detenida.txt`.
 
 ![](figuras/entrega-2-mlflow-ui.png){width=6.2in}
 

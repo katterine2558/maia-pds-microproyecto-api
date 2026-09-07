@@ -1,0 +1,23 @@
+# Estado de la instancia EC2 que hospeda MLflow
+# Verificado el 2026-09-06 19:32:18 -05
+# Comando: aws ec2 describe-instances --filters Name=tag:Name,Values=mlflow-maia
+
+---------------------------------------
+|          DescribeInstances          |
++-------------+-----------------------+
+|  Estado     |  stopped              |
+|  IP_publica |  3.224.107.117        |
+|  Instancia  |  i-0f48eeb135f1e337b  |
+|  Nombre     |  mlflow-maia          |
+|  Tipo       |  t3.micro             |
+|  Zona       |  us-east-1c           |
++-------------+-----------------------+
+
+# Cuenta AWS:
+---------------------------------------------------------------
+|                      GetCallerIdentity                      |
++---------+---------------------------------------------------+
+|  Account|  982005835034                                     |
+|  Arn    |  arn:aws:iam::982005835034:user/diomedes-deploy   |
+|  UserId |  AIDA6JJA34UNJSUJI6CXW                            |
++---------+---------------------------------------------------+
