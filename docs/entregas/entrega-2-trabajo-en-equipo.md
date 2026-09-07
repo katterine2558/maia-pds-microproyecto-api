@@ -4,7 +4,6 @@
 Camilo Andres Rodriguez Duenas · Jasbyn Rainier Solano Carrillo ·
 Leonardo Almanza Sanchez · Gineth Katerine Arias Carrillo
 
-*(maximo 1 pagina — tope del enunciado)*
 
 ## Como nos organizamos
 

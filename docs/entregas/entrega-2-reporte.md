@@ -1,27 +1,15 @@
-# Entrega 2 — Reporte
-
-**Micro-proyecto · Desarrollo de Soluciones · MAIA — Universidad de los Andes**
-Camilo Andres Rodriguez Duenas · Jasbyn Rainier Solano Carrillo ·
-Leonardo Almanza Sanchez · Gineth Katerine Arias Carrillo
-
-> **Restriccion del enunciado: maximo 10 paginas.** Si se entrega mas, solo se
-> califican las primeras 10. El reporte de trabajo en equipo va aparte y tiene
-> su propio limite de 1 pagina.
->
-> Presupuesto sugerido: seccion 1 = 1 pagina (tope del enunciado), seccion 2 =
-> 4 paginas, seccion 3 = 2 paginas, seccion 4 = 2 paginas, deja 1 de holgura.
->
-> Este archivo es el borrador de trabajo. La version que se entrega se exporta
-> a documento con el formato del curso.
-
+---
+title: "Prediccion de reingreso hospitalario temprano en pacientes diabeticos"
+subtitle: "Entrega 2 · Micro-proyecto · Desarrollo de Soluciones · MAIA, Universidad de los Andes"
+author:
+  - "Camilo Andres Rodriguez Duenas · Jasbyn Rainier Solano Carrillo · Leonardo Almanza Sanchez · Gineth Katerine Arias Carrillo"
+  - "Repositorios: github.com/katterine2558/maia-pds-microproyecto-api · github.com/katterine2558/maia-pds-microproyecto-ui"
+lang: es
 ---
 
-## 1. Resumen del problema
+# 1. Resumen del problema
 
-*(maximo 1 pagina — tope del enunciado. Version de trabajo: Leonardo la
-ajusta antes de la entrega.)*
-
-### Contexto del problema
+## 1.1 Contexto del problema
 
 El reingreso hospitalario temprano, entendido como una nueva hospitalizacion
 dentro de los 30 dias posteriores al alta, representa una utilizacion repetida
@@ -33,7 +21,7 @@ capacidad se asigne necesariamente primero a los pacientes de mayor riesgo. El
 prototipo aborda ese vacio: no reemplaza el criterio clinico, sino que ordena
 la lista de egresos del dia segun una estimacion comparable de riesgo.
 
-### Pregunta de negocio y alcance
+## 1.2 Pregunta de negocio y alcance
 
 **Que pacientes diabeticos van a reingresar al hospital dentro de los 30 dias
 siguientes al alta.**
@@ -54,7 +42,7 @@ entre 1999 y 2008, de modo que los patrones identificados no se generalizan
 automaticamente a una poblacion hospitalaria actual: el resultado es un
 prototipo metodologico.
 
-### Conjuntos de datos
+## 1.3 Conjuntos de datos
 
 Se emplea *Diabetes 130-US Hospitals for Years 1999-2008* (UCI Machine Learning
 Repository, dataset 296, licencia CC BY 4.0). De los 101.766 encuentros
@@ -65,7 +53,7 @@ con una tasa de reingreso temprano del **11,4%**. La variable objetivo es
 binaria: positivo cuando `readmitted` es `<30`. Los datos se versionan con DVC;
 en Git viaja unicamente el puntero.
 
-### Cambios respecto a la Entrega 1
+## 1.4 Cambios respecto a la Entrega 1
 
 - **Se separo el repositorio en dos.** El codigo de modelos y API vive ahora en
   `maia-pds-microproyecto-api`; el tablero tiene su propio repositorio. En la
@@ -81,27 +69,23 @@ en Git viaja unicamente el puntero.
 - El alcance, la pregunta de negocio y los conjuntos de datos se mantienen sin
   cambios respecto a la Entrega 1.
 
-## 2. Modelos desarrollados y su evaluacion
+# 2. Modelos desarrollados y su evaluacion
+
+## 2.1 Regresion logistica
 
 A partir de la base analitica definida en la Entrega 1 se desarrollo una
-regresion logistica para estimar el riesgo de reingreso hospitalario antes de
-30 dias.
+regresion logistica para estimar el riesgo de reingreso antes de 30 dias. La
+particion entrenamiento / validacion / prueba se realizo **por paciente**, con
+63.670 / 15.852 / 19.821 encuentros y cero pacientes compartidos entre
+particiones. Los hiperparametros, pesos de clase y umbral se seleccionaron sobre
+**validacion**; **prueba** se reservo para reportar el desempeno final.
 
-La particion entrenamiento / validacion / prueba se realizo **por paciente**,
-con 63.670 / 15.852 / 19.821 encuentros respectivamente y cero pacientes
-compartidos entre particiones.
-
-El principal reto fue el desbalance de la variable objetivo: solo el 11,39% de
-los encuentros corresponde a reingresos antes de 30 dias. Los hiperparametros,
-pesos de clase y umbral de decision se seleccionaron utilizando el conjunto de
-**validacion**; el conjunto de **prueba** se reservo para reportar el
-desempeno final de la configuracion seleccionada.
-
-La regresion base alcanzo 88,24% de exactitud en validacion, pero solamente
-2,00% de recall, evidenciando que una exactitud elevada no representaba una
-buena identificacion de la clase de interes. A partir de este resultado se
-evaluaron balanceo de clases, regularizacion, diferentes pesos para la clase
-positiva, ajuste del umbral de decision y una alternativa con Elastic Net.
+El principal reto fue el desbalance: solo el 11,39% de los encuentros son
+reingresos antes de 30 dias. La regresion base alcanzo 88,24% de exactitud en
+validacion pero apenas 2,00% de recall, evidencia de que una exactitud elevada
+no significa identificar la clase de interes. A partir de ahi se evaluaron
+balanceo de clases, regularizacion, pesos para la clase positiva, ajuste del
+umbral y una alternativa con Elastic Net.
 
 | Version | Conjunto | Cambio principal | ROC-AUC | PR-AUC | Recall |
 |---|---|---|---|---|---|
@@ -114,14 +98,14 @@ positiva, ajuste del umbral de decision y una alternativa con Elastic Net.
 
 Las seis versiones y sus barridos de selección se registraron en MLflow. Adicionalmente, la configuración seleccionada de V5 se registró como `V5_final_prueba`, utilizando el conjunto de prueba exclusivamente para confirmar el desempeño final. Esta corrida conserva C=0,5, peso positivo=5 y umbral=0,30, con un recall de 81,56%. Para V6 se ejecutó una rejilla completa de 75 combinaciones de Elastic Net. La fila de V6 corresponde a su mejor configuración por PR-AUC en validación (C=0,5, l1_ratio=0,5, peso positivo=3).
 
-![Recall y precision contra el umbral de decision](figuras/entrega-2-umbral-recall-precision.png)
+![](figuras/entrega-2-umbral-recall-precision.png){width=4.8in}
 
 **Figura 1.** Recall y precision en validacion segun el umbral de decision,
 sobre la version con peso positivo 5. El umbral seleccionado (0,30) es el punto
 donde el recall todavia supera el 80% antes de la caida pronunciada de los
 umbrales mas altos.
 
-### Bosque aleatorio
+## 2.2 Bosque aleatorio
 
 En paralelo se desarrollo un bosque aleatorio sobre la misma base analitica,
 con dos decisiones que lo hacen comparable con la regresion: el conjunto
@@ -150,7 +134,7 @@ encima de la prevalencia; y NearMiss degrada el ordenamiento, con ROC-AUC de
 pipeline: hacerlo antes de particionar copiaria informacion de los pacientes de
 evaluacion hacia el entrenamiento.
 
-### Comparacion y seleccion entre familias
+## 2.3 Comparacion y seleccion entre familias
 
 | Modelo | ROC-AUC | PR-AUC | Recall | Precision | Falsos negativos |
 |---|---|---|---|---|---|
@@ -173,84 +157,67 @@ reprocesar nada.
 
 ---
 
-## 3. Observaciones y conclusiones sobre los modelos
+# 3. Observaciones y conclusiones sobre los modelos
 
-El desbalance tuvo un efecto directo sobre la regresion base, que alcanzo una
-exactitud alta pero apenas 2,00% de recall en validacion. El balanceo y el
-ajuste del punto de decision permitieron aumentar sustancialmente la
-sensibilidad.
-
-La configuracion final V5 alcanzo 81,56% de recall en prueba, identificando
-1.800 de los 2.207 reingresos, con 407 falsos negativos. Este resultado tiene
-como contrapartida una precision de 14,00% y un mayor numero de falsos
-positivos, por lo que la configuracion se selecciono para un escenario en el
-que se busca reducir reingresos no identificados.
-
-Adicionalmente, el 10% de los casos con mayor riesgo estimado concentra el
-22,97% de los reingresos, con un lift de 2,30x, lo que respalda utilizar la
-probabilidad estimada para priorizar el seguimiento segun la capacidad
-disponible.
+El desbalance golpeo directamente a la regresion base: exactitud alta y apenas
+2,00% de recall en validacion. La configuracion final V5 alcanzo 81,56% de
+recall en prueba, identificando 1.800 de los 2.207 reingresos con 407 falsos
+negativos, a cambio de una precision de 14,00%. El 10% de casos con mayor riesgo
+estimado concentra ademas el 22,97% de los reingresos, con un lift de 2,30x, lo
+que respalda usar la probabilidad para priorizar segun la capacidad disponible.
 
 El registro sistematico de los experimentos permite una observacion que no es
 visible al comparar solo la configuracion final. **Ninguna de las variantes
 mejoro la capacidad de ordenamiento del modelo.** El PR-AUC en validacion se
-mantiene entre 0,2165 y 0,2209 a lo largo de las 93 corridas de seleccion y comparacion en validación.
-El barrido de regularizacion entre C=0,1 y C=10 lo mueve 0,00053; el barrido del
-peso de la clase positiva lo deja practicamente constante en 0,2209; y la
-rejilla completa de 75 combinaciones de Elastic Net con variables derivadas de
-utilizacion previa va de 0,2165 a 0,2195, es decir que su mejor configuracion
-queda por debajo de los modelos mas simples.
+mantiene entre 0,2165 y 0,2209 a lo largo de las 93 corridas de seleccion: el
+barrido de regularizacion entre C=0,1 y C=10 lo mueve 0,00053; el del peso de la
+clase positiva lo deja constante en 0,2209; y la rejilla de 75 combinaciones de
+Elastic Net va de 0,2165 a 0,2195, es decir que su mejor configuracion queda por
+debajo de los modelos mas simples.
 
 Lo que cambia entre versiones no es que tan bien el modelo ordena a los
-pacientes por riesgo, sino **donde se coloca el punto de corte**. El peso de
+pacientes por riesgo, sino **donde se coloca el punto de corte**: el peso de
 clase y el umbral desplazan el equilibrio entre recall y precision sobre la
-misma curva, como muestra la Figura 1, pero no producen un modelo que discrimine
-mejor.
-
-Esto tiene dos consecuencias practicas. Primera: la seleccion de V5 es una
-decision operativa sobre la tolerancia a falsos negativos, no el resultado de
-haber encontrado un modelo superior. Segunda: mejorar el desempeno requeriria
-trabajar sobre las variables o sobre la familia de modelos, no sobre los
-hiperparametros de la regresion logistica. Es el insumo natural para la
-siguiente iteracion.
+misma curva, como muestra la Figura 1. La seleccion de V5 es entonces una
+decision operativa sobre la tolerancia a falsos negativos, no el hallazgo de un
+modelo superior.
 
 El bosque aleatorio se desarrollo por separado y llego a la misma conclusion por
 otro camino. A lo largo de los cuatro escenarios de arbol, las siete tecnicas de
-balanceo y los pesos de clase probados, **el ROC-AUC se mantuvo entre 0,656 y
-0,673**, con la unica excepcion de NearMiss, que lo degrada a 0,5633. Cambiar de
-familia de modelos tampoco movio el techo: la comparacion de la seccion anterior
-separa a las dos por menos de 0,01 de ROC-AUC. Que dos personas lo encontraran
-de forma independiente le da mas peso al hallazgo que si viniera de un solo
-experimento.
+balanceo y los pesos probados, **el ROC-AUC se mantuvo entre 0,656 y 0,673**,
+con la unica excepcion de NearMiss, que lo degrada a 0,5633. Cambiar de familia
+tampoco movio el techo: menos de 0,01 de ROC-AUC separa a las dos. Que dos
+personas lo encontraran de forma independiente le da mas peso al hallazgo.
 
 Ese techo coincide con lo que reporta la literatura sobre este conjunto de datos
 (0,63-0,70) y con el desempeno del indice LACE, el instrumento clinico de
-referencia para predecir readmision (0,68-0,70). No es entonces un limite del
-modelamiento sino de la informacion disponible en los registros administrativos:
-lo que falta son variables que el dataset no trae.
+referencia para predecir readmision (0,68-0,70). El limite no esta en el
+modelamiento sino en la informacion de los registros administrativos: mejorar
+exige variables que el dataset no trae, y ese es el insumo de la proxima
+iteracion.
 
-Lo que si movio la sensibilidad fue la profundidad del arbol, y de manera
-abrupta: de 27,50% sin restricciones a 90,48% limitandola a doce niveles, sin
-que el tamano del bosque ni el criterio de particion cambiaran nada apreciable.
-La causa no es solo el sobreajuste. Un arbol que memoriza produce probabilidades
-concentradas cerca de cero y de uno, de modo que un umbral fijo en 0,30 clasifica
-casi todo como negativo. Regular la profundidad devuelve probabilidades
+Lo que si movio la sensibilidad fue la profundidad del arbol, de forma abrupta:
+de 27,50% sin restricciones a 90,48% limitandola a doce niveles, sin que el
+tamano del bosque ni el criterio de particion cambiaran nada apreciable. La
+causa no es solo el sobreajuste. Un arbol que memoriza produce probabilidades
+concentradas cerca de cero y de uno, y un umbral fijo en 0,30 las clasifica casi
+todas como negativas. Regular la profundidad devuelve probabilidades
 intermedias, y es sobre esas probabilidades que el tablero ordena la lista de
-egresos: si estan mal distribuidas, el orden que ve enfermeria deja de ser util
-aunque el ROC-AUC no se entere.
+egresos: mal distribuidas, el orden que ve enfermeria deja de ser util aunque el
+ROC-AUC no se entere.
 
 ---
 
-## 4. Descripcion del tablero y la funcionalidad que ofrece
+# 4. Descripcion del tablero y la funcionalidad que ofrece
 
-En esta iteración se genera la primera versión de tablero `streamlit` basado en la
-maqueta inicial, estableciendo una arquitectura modular que plantea una separación de
-capas por vistas, componentes, configuración y servicio, de la misma manera se establece
-una paleta de colores que define el *look and feel* e identidad del producto. La capa
-API se mantiene separada como servicio independiente, y definida para poder integrar
-el frontend y backend en la siguiente iteración del proyecto. Una decisión importante
-que el equipo toma en esta iteración es mantener los repositorios de front y back 
-separados, esto beneficia la mantenibilidad al separar las responsabilidades y facilita la estrategia de entrega y despliegue continuo. El tablero cuenta con 3 menús:
+En esta iteración se genera la primera versión del tablero en `streamlit`, basada
+en la maqueta inicial, con una arquitectura modular que separa vistas,
+componentes, configuración y servicio, y una paleta de colores que define el
+*look and feel* del producto. La capa API se mantiene como servicio
+independiente, definida para integrar frontend y backend en la siguiente
+iteración. Mantener los repositorios de front y back separados beneficia la
+mantenibilidad y facilita la entrega y el despliegue continuo. El tablero cuenta
+con tres menús:
 
 - **Priorización**: Es un panel donde se van registrando los egresos programados, dicho 
 registro incluye 4 tarjetas que exhiben los egresos del día, la capacidad de seguimiento,
@@ -258,7 +225,7 @@ la cobertura de riesgo estimada, y el riesgo de no cobertura. Se apoya en filtro
 para poder observar el detalle de esta información con filtros como la fecha de alta, servicio
 hospitalario y capacidad de seguimiento de pacientes.
 
-![Panel de priorizacion](figuras/entrega-2-01-visual-priorizacion.png)
+![](figuras/entrega-2-01-visual-priorizacion.png){width=4.1in}
 
 **Figura 2.** Vista de priorización. La línea de capacidad separa los pacientes
 que alcanzan el recurso del día de los que quedan por debajo, que es la
@@ -271,7 +238,7 @@ medicamentos, ingresos previos (1 año), urgencias previas (1 año), resultado d
 de medicación. Es en esta sección donde se debe invocar al api de predicciones en la
 siguiente iteración.
 
-![Panel de paciente](figuras/entrega-2-02-visual-paciente.png)
+![](figuras/entrega-2-02-visual-paciente.png){width=4.1in}
 
 **Figura 3.** Vista de paciente. El formulario ya envía el encuentro por HTTP a
 `POST /predict`; la tarjeta de resultado muestra valores ilustrativos porque el
@@ -282,7 +249,7 @@ teniendo en cuenta criterios como tasa de reingreso < 30 días según ingresos p
 especialidad que da el alta, tasa por rango de edad. Se plantean gráficas de barras horizontales
 para visualizar este informe.
 
-![Panel de contexto](figuras/entrega-2-03-visual-contexto.png)
+![](figuras/entrega-2-03-visual-contexto.png){width=4.1in}
 
 **Figura 4.** Vista de contexto, con los hallazgos descriptivos de la Entrega 1
 puestos frente al usuario clínico.
@@ -292,43 +259,48 @@ tablero además está desplegado y accesible en
 [Railway](https://maia-pds-microproyecto-ui-production.up.railway.app), con una
 ruta por vista: `/`, `/paciente` y `/contexto`.
 
-## 4.1 Deuda técnica del tablero
+## 4.1 Deuda tecnica del tablero
 
 La validación del despliegue dejó a la vista tres defectos de tema que el
 ambiente local no mostraba: Streamlit resolvía sus colores según la preferencia
-del sistema de quien miraba, de modo que en modo oscuro los títulos y las cifras
-de las tarjetas quedaban blanco sobre blanco; el `sidebar` no se podía reabrir
-una vez colapsado; y el selector de unidad quedaba ilegible porque Streamlit
-1.63 cambió los `selectbox` de BaseWeb a react-aria. Los tres se corrigieron
-fijando el tema del tablero y cubriendo las dos marcas de selector.
-
-Que hayan aparecido solo en producción es el argumento a favor de la deuda que
-sí queda pendiente: no hay pruebas de front que atrapen regresiones visuales, y
-la integración con el API de inferencia se aborda en la semana 6.
+del sistema de quien miraba, y en modo oscuro los títulos y las cifras de las
+tarjetas quedaban blanco sobre blanco; el `sidebar` no se podía reabrir una vez
+colapsado; y el selector de unidad quedaba ilegible porque Streamlit 1.63 cambió
+los `selectbox` de BaseWeb a react-aria. Los tres se corrigieron fijando el tema
+del tablero. Que aparecieran solo en producción es el argumento a favor de la
+deuda que sí queda pendiente: no hay pruebas de front que atrapen regresiones
+visuales, y la integración con el API se aborda en la semana 6.
 
 ---
 
-## Entregables que van aparte del reporte
+# 5. Repositorios y soporte de los experimentos
 
-- [ ] Repositorio Git accesible, con evidencia de uso por parte de **cada**
-      integrante via commits
-- [ ] Fuentes de los modelos desarrollados
-- [ ] Fuentes del tablero desarrollado → https://github.com/katterine2558/maia-pds-microproyecto-ui
-- [ ] Evidencia de ejecucion del tablero → Figuras 2, 3 y 4 de la seccion 4
-      (ejecucion local en `localhost:8501`) y el despliegue en Railway
-- [ ] **Pantallazos de MLflow**, donde se vean el usuario y la IP de la maquina
-      EC2, y la IP dentro de la interfaz de MLflow → `docs/entregas/figuras/`
-- [ ] Reporte de trabajo en equipo, **maximo 1 pagina**
+El codigo vive en dos repositorios publicos, uno por unidad desplegable. La
+separacion vuelve estructural la frontera que exige el enunciado: el tablero no
+tiene forma de importar el modelo ni de cargar el artefacto serializado, solo
+puede hablar con la API por HTTP.
 
-### Los tres pantallazos exigidos
+| Repositorio | Contenido |
+|---|---|
+| [maia-pds-microproyecto-api](https://github.com/katterine2558/maia-pds-microproyecto-api) | Datos versionados con DVC, pipelines de procesamiento y entrenamiento, experimentos de MLflow, modelos y la API que los sirve |
+| [maia-pds-microproyecto-ui](https://github.com/katterine2558/maia-pds-microproyecto-ui) | Fuentes del tablero y sus artefactos de despliegue |
 
-1. ~~Terminal SSH conectada~~ — **listo**:
-   `figuras/entrega-2-mlflow-ec2-ssh.png`. Muestra el prompt
-   `ubuntu@ip-172-31-29-30`, la IP privada de la interfaz y la IP publica en
-   el comando de conexion.
-2. ~~Consola de EC2~~ — **listo**:
-   `figuras/entrega-2-mlflow-ec2-consola.png`. Muestra la instancia
-   `mlflow-maia` en estado Running, la IP publica 3.224.107.117, la Elastic IP
-   asociada y el usuario de la cuenta.
-3. Interfaz de MLflow con los experimentos y la URL visible en la barra de
-   direcciones — pendiente
+El historial de commits de cada integrante se consulta en
+[el repositorio principal](https://github.com/katterine2558/maia-pds-microproyecto-api/commits/main/)
+y en [el del tablero](https://github.com/katterine2558/maia-pds-microproyecto-ui/commits/main/).
+
+Los experimentos se registran en un servidor de MLflow montado sobre una
+instancia EC2 de AWS, compartido por el equipo y protegido con autenticacion.
+Cada corrida queda asociada al autor del modelo, de modo que las versiones de
+las dos familias se comparan en un mismo lugar.
+
+![](figuras/entrega-2-mlflow-ec2-ssh.png){width=3.6in}
+
+**Figura 5.** Sesion SSH contra la maquina EC2 que hospeda MLflow. Se ven el
+usuario `ubuntu`, el nombre de la instancia con su IP privada y la IP publica
+en el comando de conexion.
+
+![](figuras/entrega-2-mlflow-ec2-consola.png){width=3.6in}
+
+**Figura 6.** Consola de AWS con la instancia `mlflow-maia` en ejecucion, su IP
+publica 3.224.107.117, la Elastic IP asociada y el usuario de la cuenta.
