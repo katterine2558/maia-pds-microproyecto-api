@@ -53,9 +53,7 @@ MLflow; separacion del repositorio en codigo y tablero. Consolidacion del report
 
 ## 6.3 Como discutimos los resultados
 
-Las dos familias de modelos se desarrollaron en paralelo y por separado, y
-llegaron de forma independiente a la misma conclusion: ninguna tecnica de
-balanceo ni ajuste de hiperparametros mejora la separacion entre clases; todas
-reubican el punto de operacion sobre la misma curva. Que dos personas lo
-encontraran por caminos distintos le da mas peso al hallazgo que si fuera
-resultado de un solo experimento.
+Las dos familias se desarrollaron en paralelo y por separado, y llegaron de forma
+independiente a la misma conclusion sobre el techo del ordenamiento (seccion 3).
+Que dos personas lo encontraran por caminos distintos le da mas peso al hallazgo
+que si fuera resultado de un solo experimento.

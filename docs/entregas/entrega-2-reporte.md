@@ -55,17 +55,15 @@ en Git viaja unicamente el puntero.
 
 ## 1.4 Cambios respecto a la Entrega 1
 
-- **Se separo el repositorio en dos.** El codigo de modelos y API vive ahora en
-  `maia-pds-microproyecto-api`; el tablero tiene su propio repositorio. En la
-  Entrega 1 todo estaba en `microproyecto-desarrollo-soluciones`.
-- **Se incorporo un servidor de MLflow sobre AWS EC2** como registro compartido
-  de experimentos, de modo que las versiones de modelo del equipo se comparan
-  en un mismo lugar.
-- El trabajo paso de la caracterizacion y exploracion de los datos a la
-  preparacion, entrenamiento y evaluacion del modelo predictivo.
+- **Se separo el repositorio en dos.** Modelos y API en
+  `maia-pds-microproyecto-api`, tablero en el suyo; en la Entrega 1 todo estaba
+  en `microproyecto-desarrollo-soluciones`.
+- **Se incorporo un servidor de MLflow sobre AWS EC2** como registro compartido,
+  de modo que las versiones de modelo del equipo se comparan en un mismo lugar.
+- El trabajo paso de la exploracion de los datos a la preparacion, entrenamiento
+  y evaluacion del modelo predictivo.
 - **La maqueta no cambio.** Se mantiene la version iterada en la semana 3, con
-  las bandas de riesgo ancladas en la tasa general observada. El tablero se
-  desarrolla de acuerdo con ella.
+  las bandas de riesgo ancladas en la tasa general observada.
 - El alcance, la pregunta de negocio y los conjuntos de datos se mantienen sin
   cambios respecto a la Entrega 1.
 
@@ -212,18 +210,14 @@ ROC-AUC no se entere.
 
 En esta iteración se genera la primera versión del tablero en `streamlit`, basada
 en la maqueta inicial, con una arquitectura modular que separa vistas,
-componentes, configuración y servicio, y una paleta de colores que define el
-*look and feel* del producto. La capa API se mantiene como servicio
-independiente, definida para integrar frontend y backend en la siguiente
-iteración. Mantener los repositorios de front y back separados beneficia la
-mantenibilidad y facilita la entrega y el despliegue continuo. El tablero cuenta
-con tres menús:
+componentes, configuración y servicio, y una paleta que define el *look and feel*
+del producto. La capa API se mantiene como servicio independiente, para integrar
+frontend y backend en la siguiente iteración. El tablero cuenta con tres menús:
 
-- **Priorización**: Es un panel donde se van registrando los egresos programados, dicho 
-registro incluye 4 tarjetas que exhiben los egresos del día, la capacidad de seguimiento,
-la cobertura de riesgo estimada, y el riesgo de no cobertura. Se apoya en filtro y tablas
-para poder observar el detalle de esta información con filtros como la fecha de alta, servicio
-hospitalario y capacidad de seguimiento de pacientes.
+- **Priorización**: panel de los egresos programados, con cuatro tarjetas —egresos
+del día, capacidad de seguimiento, cobertura de riesgo estimada y riesgo de no
+cobertura— y una tabla de detalle con filtros por fecha de alta, servicio
+hospitalario y capacidad de seguimiento.
 
 ![](figuras/entrega-2-01-visual-priorizacion.png){width=5.3in}
 
@@ -231,12 +225,11 @@ hospitalario y capacidad de seguimiento de pacientes.
 que alcanzan el recurso del día de los que quedan por debajo, que es la
 decisión que el tablero apoya.
 
-- **Paciente**: Esta visual facilita el registro del paciente, y propone la captura
-de los datos para la predicción del modelo de ML, los campos son el rango de edad, tipo
-de admisión, servicio que da el alta, días de estancia, número de diagnósticos, número de
-medicamentos, ingresos previos (1 año), urgencias previas (1 año), resultado de A1C y cambio
-de medicación. Es en esta sección donde se debe invocar al api de predicciones en la
-siguiente iteración.
+- **Paciente**: registra el encuentro y captura los datos que consume el modelo
+—rango de edad, tipo de admisión, servicio que da el alta, días de estancia,
+número de diagnósticos y de medicamentos, ingresos y urgencias previas (1 año),
+resultado de A1C y cambio de medicación—. Es la vista que invoca la API de
+predicciones.
 
 ![](figuras/entrega-2-02-visual-paciente.png){width=5.3in}
 
@@ -244,10 +237,9 @@ siguiente iteración.
 `POST /predict`; la tarjeta de resultado muestra valores ilustrativos porque el
 API que la responde es entregable de la semana 6.
 
-- **Contexto**: Es una visual analítica que muestra dónde se concentra el riesgo de reingreso,
-teniendo en cuenta criterios como tasa de reingreso < 30 días según ingresos previos, tasa de
-especialidad que da el alta, tasa por rango de edad. Se plantean gráficas de barras horizontales
-para visualizar este informe.
+- **Contexto**: visual analítica de dónde se concentra el riesgo, con barras
+horizontales de la tasa de reingreso < 30 días por ingresos previos, por
+especialidad que da el alta y por rango de edad.
 
 ![](figuras/entrega-2-03-visual-contexto.png){width=5.3in}
 
@@ -261,15 +253,12 @@ ruta por vista: `/`, `/paciente` y `/contexto`.
 
 ## 4.1 Deuda tecnica del tablero
 
-La validación del despliegue dejó a la vista tres defectos de tema que el
-ambiente local no mostraba: Streamlit resolvía sus colores según la preferencia
-del sistema de quien miraba, y en modo oscuro los títulos y las cifras de las
-tarjetas quedaban blanco sobre blanco; el `sidebar` no se podía reabrir una vez
-colapsado; y el selector de unidad quedaba ilegible porque Streamlit 1.63 cambió
-los `selectbox` de BaseWeb a react-aria. Los tres se corrigieron fijando el tema
-del tablero. Que aparecieran solo en producción es el argumento a favor de la
-deuda que sí queda pendiente: no hay pruebas de front que atrapen regresiones
-visuales, y la integración con el API se aborda en la semana 6.
+El despliegue destapó tres defectos de tema que el ambiente local no mostraba:
+texto blanco sobre blanco en modo oscuro, `sidebar` que no reabría una vez
+colapsado y `selectbox` ilegible tras el cambio de BaseWeb a react-aria en
+Streamlit 1.63. Los tres se corrigieron fijando el tema. Que solo aparecieran en
+producción sustenta la deuda que queda: no hay pruebas de front que atrapen
+regresiones visuales, y la integración con el API se aborda en la semana 6.
 
 ---
 
@@ -277,11 +266,9 @@ visuales, y la integración con el API se aborda en la semana 6.
 
 El codigo vive en dos repositorios publicos, uno por unidad desplegable. La
 separacion vuelve estructural la frontera que exige el enunciado: el tablero no
-tiene forma de importar el modelo ni de cargar el artefacto serializado, solo
-puede hablar con la API por HTTP. El historial de commits de cada integrante se
-consulta en
-[el repositorio principal](https://github.com/katterine2558/maia-pds-microproyecto-api/commits/main/)
-y en [el del tablero](https://github.com/katterine2558/maia-pds-microproyecto-ui/commits/main/).
+puede importar el modelo ni cargar el artefacto serializado, solo hablar con la
+API por HTTP. El historial de commits de cada integrante esta en
+[el repositorio principal](https://github.com/katterine2558/maia-pds-microproyecto-api/commits/main/) y en [el del tablero](https://github.com/katterine2558/maia-pds-microproyecto-ui/commits/main/).
 
 ## 5.1 Fuentes de los modelos desarrollados
 
