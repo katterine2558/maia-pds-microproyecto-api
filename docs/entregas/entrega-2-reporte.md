@@ -304,3 +304,14 @@ en el comando de conexion.
 
 **Figura 6.** Consola de AWS con la instancia `mlflow-maia` en ejecucion, su IP
 publica 3.224.107.117, la Elastic IP asociada y el usuario de la cuenta.
+
+![](figuras/entrega-2-mlflow-ui.png){width=6.2in}
+
+![](figuras/entrega-2-mlflow-url.png){width=6.2in}
+
+**Figura 7.** Interfaz de MLflow servida desde la EC2, con detalle de la barra de
+direcciones: `3.224.107.117:5000`, la misma IP publica de la Figura 6. El
+experimento `readmision-diabetes` acumula 101 corridas de las dos familias:
+`comparacion_balanceo` y `escenarios_bosque` del bosque aleatorio,
+`V5_final_prueba` de la regresion y la rejilla `V6_rejilla_elasticnet` con sus
+75 combinaciones como corridas anidadas.
