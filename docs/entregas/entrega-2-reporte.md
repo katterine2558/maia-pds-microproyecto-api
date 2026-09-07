@@ -11,61 +11,50 @@ lang: es
 
 ## 1.1 Contexto del problema
 
-El reingreso hospitalario temprano, entendido como una nueva hospitalizacion
-dentro de los 30 dias posteriores al alta, representa una utilizacion repetida
-de servicios en un periodo corto y una oportunidad de fortalecer el seguimiento
-tras el egreso. Cuando la institucion dispone de capacidad limitada para
-llamadas o controles posteriores, la priorizacion suele depender del criterio
-clinico individual y de las condiciones operativas del alta, sin que la
-capacidad se asigne necesariamente primero a los pacientes de mayor riesgo. El
-prototipo aborda ese vacio: no reemplaza el criterio clinico, sino que ordena
-la lista de egresos del dia segun una estimacion comparable de riesgo.
+El reingreso hospitalario temprano, una nueva hospitalizacion dentro de los 30
+dias posteriores al alta, marca una oportunidad de fortalecer el seguimiento tras
+el egreso. Con capacidad limitada para llamadas o controles posteriores, la
+priorizacion depende del criterio clinico individual y de las condiciones
+operativas del alta, sin que se asigne primero a los pacientes de mayor riesgo.
+El prototipo aborda ese vacio: no reemplaza el criterio clinico, ordena la lista
+de egresos del dia segun una estimacion comparable de riesgo.
 
 ## 1.2 Pregunta de negocio y alcance
 
 **Que pacientes diabeticos van a reingresar al hospital dentro de los 30 dias
 siguientes al alta.**
 
-La pregunta se responde el dia del alta, antes de que el paciente salga, y
-alimenta una decision concreta: a que pacientes se les programa control tras el
-egreso. El usuario es el personal de enfermeria de la unidad de gestion
-hospitalaria. El prototipo contempla dos usos complementarios: ordenar el
-listado completo de egresos del dia segun probabilidad estimada, y consultar
-individualmente a un paciente.
+Se responde el dia del alta y alimenta una decision concreta: a que pacientes se
+les programa control tras el egreso. El usuario es el personal de enfermeria de
+la unidad de gestion hospitalaria. Hay dos usos: ordenar el listado de egresos
+del dia segun probabilidad estimada, y consultar individualmente a un paciente.
 
 Queda fuera del alcance estimar la causa del reingreso, sugerir tratamientos y
-reemplazar el criterio clinico. Tampoco hay conexion directa a un sistema de
-informacion hospitalario: el listado de egresos se carga como archivo. La
-variable `race` se reserva para evaluar el desempeno entre grupos y no se usa
-como predictora. Los registros corresponden a hospitales de Estados Unidos
-entre 1999 y 2008, de modo que los patrones identificados no se generalizan
-automaticamente a una poblacion hospitalaria actual: el resultado es un
-prototipo metodologico.
+reemplazar el criterio clinico; tampoco hay conexion a un sistema de informacion
+hospitalario, el listado de egresos se carga como archivo. La variable `race` se
+reserva para evaluar el desempeno entre grupos y no se usa como predictora. Los
+registros son de hospitales de Estados Unidos entre 1999 y 2008, de modo que los
+patrones no se generalizan a una poblacion actual: el resultado es un prototipo
+metodologico.
 
 ## 1.3 Conjuntos de datos
 
 Se emplea *Diabetes 130-US Hospitals for Years 1999-2008* (UCI Machine Learning
 Repository, dataset 296, licencia CC BY 4.0). De los 101.766 encuentros
 originales se excluyeron 2.423 (2,38%): 1.652 de pacientes fallecidos, que no
-pueden reingresar, y 771 con egreso a hospicio, cuyo objetivo de cuidado es
-distinto. La base analitica queda en **99.343 encuentros de 69.990 pacientes**,
-con una tasa de reingreso temprano del **11,4%**. La variable objetivo es
-binaria: positivo cuando `readmitted` es `<30`. Los datos se versionan con DVC;
-en Git viaja unicamente el puntero.
+pueden reingresar, y 771 con egreso a hospicio. La base analitica queda en **99.343 encuentros de 69.990 pacientes**,
+con una tasa de reingreso temprano del **11,4%**; la variable objetivo es positiva
+cuando `readmitted` es `<30`. Los datos se versionan con DVC, y en Git viaja
+unicamente el puntero.
 
 ## 1.4 Cambios respecto a la Entrega 1
 
-- **Se separo el repositorio en dos.** Modelos y API en
-  `maia-pds-microproyecto-api`, tablero en el suyo; en la Entrega 1 todo estaba
-  en `microproyecto-desarrollo-soluciones`.
+- **Se separo el repositorio en dos**: modelos y API en
+  `maia-pds-microproyecto-api`, tablero en el suyo.
 - **Se incorporo un servidor de MLflow sobre AWS EC2** como registro compartido,
   de modo que las versiones de modelo del equipo se comparan en un mismo lugar.
-- El trabajo paso de la exploracion de los datos a la preparacion, entrenamiento
-  y evaluacion del modelo predictivo.
-- **La maqueta no cambio.** Se mantiene la version iterada en la semana 3, con
-  las bandas de riesgo ancladas en la tasa general observada.
-- El alcance, la pregunta de negocio y los conjuntos de datos se mantienen sin
-  cambios respecto a la Entrega 1.
+- **La maqueta no cambio**, ni el alcance, la pregunta de negocio o los conjuntos
+  de datos: el tablero se desarrolla sobre la version iterada en la semana 3.
 
 # 2. Modelos desarrollados y su evaluacion
 
