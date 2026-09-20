@@ -37,9 +37,7 @@ Al preparar la integración se encontró que el bosque V2 había sido entrenado 
 |---|---:|---:|---:|---:|---:|
 | `bosque_formulario_e3_v1` | 0,6292 | 0,1913 | 89,90 % | 12,32 % | 223 |
 
-El modelo del formulario obtuvo valores menores de ROC-AUC y PR-AUC que el bosque V2. Las métricas de los dos modelos deben mantenerse diferenciadas: la predicción mostrada actualmente en Paciente proviene de `bosque_formulario_e3_v1`, mientras que los resultados de V2 corresponden al modelo estudiado en la Entrega 2 con más variables de entrada.
-
-Los experimentos anteriores se documentaron en MLflow sobre EC2. Antes de cerrar la entrega se debe registrar allí el modelo que quede en uso, con sus parámetros, métricas y artefacto. La variante `bosque_formulario_e3_v1` todavía no cuenta con ese registro.
+El modelo del formulario obtuvo valores menores de ROC-AUC y PR-AUC que el bosque V2. Las métricas de los dos modelos deben mantenerse diferenciadas: la predicción mostrada actualmente en Paciente proviene de `bosque_formulario_e3_v1`, mientras que los resultados de V2 corresponden al modelo estudiado en la Entrega 2 con más variables de entrada. Los experimentos anteriores se documentaron en MLflow sobre EC2. Antes de cerrar la entrega se debe registrar allí el modelo que quede en uso, con sus parámetros, métricas y artefacto. La variante `bosque_formulario_e3_v1` todavía no cuenta con ese registro.
 
 ## 3. Descripción del tablero desarrollado y su funcionalidad
 
@@ -48,23 +46,19 @@ El tablero está desarrollado en Streamlit y contiene las vistas **Paciente**, *
 
 **Paciente** solicita diez datos del encuentro y presenta la respuesta de `POST /predict`. **Contexto** ofrece gráficas descriptivas del conjunto de datos; estas gráficas no representan predicciones individuales. **Priorización** muestra por ahora encuentros de demostración. Para completar esta última vista falta recibir un archivo de egresos, validar sus columnas, obtener las predicciones y ordenar los casos según la capacidad de seguimiento.
 
-REalice En una prueba local, `/health` respondió con `{"estado":"ok","modelo":"bosque_formulario_e3_v1"}`. También se comprobó una respuesta de predicción y el rechazo de una estancia de cero días con estado **422**.
+Realice en una prueba local, `/health` respondió con `{"estado":"ok","modelo":"bosque_formulario_e3_v1"}`. También se comprobó una respuesta de predicción y el rechazo de una estancia de cero días con estado **422**.
 
 Se ejecutaron la API en `127.0.0.1:8000` y el tablero en `localhost:8501`. En Paciente se ingresó un encuentro con edad `[70-80)`, admisión `Emergency`, servicio `Nephrology`, nueve días de estancia, nueve diagnósticos, 21 medicamentos, cinco ingresos previos, dos visitas previas a urgencias, A1C no medido y cambio de medicación `Sí`.vLa pantalla presentó una **probabilidad de 0,61**, **riesgo alto**, umbral de **0,30** y versión **`bosque_formulario_e3_v1`**. Se comprobó así que el formulario consultó la API local y mostró su respuesta. También se retiró de la tarjeta una cifra fija de «cohorte comparable»; tras la corrección, el resultado se presentó sin código HTML visible.
 
 ## 4. Despliegue del tablero y la API
 
-El tablero y la API se encuentran en repositorios separados. Ambos cuentan con archivos para preparar su ejecución en contenedores: el tablero dispone de un `Dockerfile` y `railway.json`, y para la API se prepararon `api/Dockerfile` y `api/requirements.txt`. La dirección de la API se configura mediante `API_URL`; durante la prueba local se utilizó `http://localhost:8000`.
+**Por ejecutar**.
 
-La integración descrita en este informe se probó en un computador. Todavía no se ha comprobado el funcionamiento conjunto de los dos contenedores en nube. El tablero había sido presentado anteriormente en Railway, pero esa publicación no incluía la nueva API de esta entrega. La prueba del despliegue deberá mostrar ambos servicios accesibles y una predicción realizada desde la interfaz publicada.
+En pruebas dentro en mi computador, El tablero y la API se encuentran en repositorios separados. Ambos cuentan con archivos para preparar su ejecución en contenedores: el tablero dispone de un `Dockerfile` y `railway.json`, y para la API se prepararon `api/Dockerfile` y `api/requirements.txt`. La dirección de la API se configura mediante `API_URL`; durante la prueba local se utilizó `http://localhost:8000`. Todavía no se ha comprobado el funcionamiento conjunto de los dos contenedores en nube. El tablero había sido presentado anteriormente en Railway, pero esa publicación no incluía la nueva API de esta entrega
 
 ## 5. Principales resultados y conclusiones
 
-En la comparación de la Entrega 2, el bosque V2 identificó más reingresos que la regresión logística V5 al umbral estudiado. Su precisión muestra que el uso de las alertas debe ajustarse a la capacidad disponible para contactar pacientes.
-
-Para esta entrega se entrenó una versión compatible con los diez datos de Paciente y se comprobó localmente la comunicación entre la interfaz y la API. El resultado mostrado en pantalla fue calculado por `bosque_formulario_e3_v1`; no debe describirse utilizando las métricas del bosque V2.
-
-Para completar el producto se debe escoger la versión del modelo que quedará en servicio, registrar su experimento en MLflow, conectar Priorización con predicciones reales y probar el tablero y la API desplegados. Los resultados actuales corresponden a un prototipo académico evaluado con datos históricos, sin validación clínica en la población donde eventualmente se utilizaría.
+**Por ejecutar**.
 
 ## 6. Soportes de la entrega
 
