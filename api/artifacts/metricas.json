@@ -1,0 +1,13 @@
+{
+  "modelo": "bosque_formulario_e3_v1",
+  "entrenamiento": 79522,
+  "prueba": 19821,
+  "positivos_prueba": 2207,
+  "pacientes_compartidos": 0,
+  "roc_auc": 0.6310132392010742,
+  "pr_auc": 0.19287750072936743,
+  "recall": 0.9089261440869959,
+  "precision": 0.12259365641997189,
+  "falsos_negativos": 201,
+  "umbral": 0.3
+}

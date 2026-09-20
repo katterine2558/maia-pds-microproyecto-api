@@ -1,0 +1,23 @@
+# Estado de la solucion levantada con docker compose
+# Verificado el 2026-09-20
+
+$ docker compose ps
+SERVICE   STATUS                     PORTS
+api       Up (healthy)               0.0.0.0:8000->8000/tcp
+tablero   Up (healthy)               0.0.0.0:8501->8501/tcp
+
+# La API responde por si sola
+$ curl -s http://localhost:8000/health
+{"estado":"ok","modelo":"bosque_formulario_e3_v1"}
+
+# El tablero alcanza la API por el nombre del servicio, dentro de la red de
+# compose: no por localhost, que dentro del contenedor es el propio tablero.
+$ docker compose exec tablero /app/.venv/bin/python -c "from services import api; print(api.API_URL, api.salud())"
+http://api:8000 {'estado': 'ok', 'modelo': 'bosque_formulario_e3_v1'}
+
+# Prediccion completa, con el encuentro de referencia del reporte
+$ docker compose exec tablero /app/.venv/bin/python -c "..."
+{'probabilidad': 0.6355354863736404, 'umbral': 0.3, 'modelo': 'bosque_formulario_e3_v1'}
+
+# En pantalla, la vista Paciente muestra 0,64 - riesgo alto - umbral 0,30.
+# Ver docs/entregas/figuras/entrega-3-paciente-en-contenedores.jpg
