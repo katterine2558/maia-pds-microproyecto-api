@@ -55,11 +55,15 @@ La vista Priorización debe recibir un archivo de egresos, verificar sus columna
 
 La API y el tablero se ubican en repositorios distintos. El tablero se comunica por HTTP y no carga directamente el modelo. La Entrega 2 mostró interfaz y separación de componentes, pero **no demostró todavía que la tarjeta de Paciente o el listado de Priorización presentaran predicciones reales**.
 
+La inspección de las fuentes del tablero permite precisar qué está construido: `app.py` organiza las tres vistas; `views/paciente.py` recoge diez datos del encuentro y envía un diccionario a `services/api.py`, que implementa `POST /predict` y `GET /health` con un tiempo máximo de espera de diez segundos. La vista solo presenta un resultado si la respuesta incluye una probabilidad y un umbral numéricos válidos; ante un error informa al usuario. `views/contexto.py` ofrece visualizaciones descriptivas separadas de la predicción. En la copia consultada, `views/priorizacion.py` conserva ocho encuentros de ejemplo y cifras fijas de capacidad y cobertura; todavía no recibe un archivo ni consulta la API. Por ello, una captura de esa pantalla no serviría como evidencia de priorización calculada por el modelo.
+
 **Pendiente para versión final:** nombres reales de endpoints, esquema y validaciones; capturas del mismo encuentro en `/predict` y en el tablero; prueba de un archivo con varios egresos; mensajes ante datos incompletos y API no disponible; eliminación de toda cifra ilustrativa presentada como inferencia.
 
 ## 4. Despliegue con Docker en nube
 
 La arquitectura esperada es tablero Streamlit → API de inferencia → pipeline de modelo empaquetado. La segunda entrega incluyó un Dockerfile del tablero y describió su publicación en Railway. La tercera debe documentar el artefacto de despliegue de **ambos servicios**, la versión del modelo, sus URL, la configuración de comunicación entre servicios y una prueba funcional desde la interfaz pública. La existencia previa de la interfaz en Railway, por sí sola, no acredita el despliegue de la API.
+
+El repositorio del tablero ya incluye un `Dockerfile` con Python 3.12, instalación mediante `uv.lock`, exposición del puerto 8501 y verificación de salud de Streamlit, además de `railway.json`. La variable `API_URL` determina a qué servicio HTTP se envían las solicitudes; su valor por defecto en `services/api.py` es `http://localhost:8000`, y el Dockerfile define `http://api:8000` para una red de contenedores. En un despliegue en Railway debe configurarse con la dirección realmente accesible de la API. En el repositorio de modelos consultado aún no se encontró el servicio FastAPI ni su imagen de contenedor; esta parte no puede presentarse como despliegue realizado.
 
 **Pendiente para versión final:** plataforma efectiva, Dockerfiles y configuración, URL del tablero, URL de documentación de la API, prueba de salud y predicción, capturas y fecha de validación. Según la guía, detener las máquinas y servicios usados tras las pruebas sin terminarlos.
 
@@ -74,5 +78,6 @@ Los resultados confirmados hasta la segunda entrega muestran que el bosque V2 id
 - [Modelos y API](https://github.com/katterine2558/maia-pds-microproyecto-api).
 - [Tablero](https://github.com/katterine2558/maia-pds-microproyecto-ui).
 - Fuentes de referencia interna: `docs/entregas/Entrega-2-reporte.pdf`; guía `maia_pds_proy_e3.pdf` aportada al equipo; dataset UCI *Diabetes 130-US Hospitals for Years 1999-2008*.
+- Borradores de soportes preparados a partir de las fuentes revisadas: `entrega-3-manual-usuario-borrador.md`, `entrega-3-manual-instalacion-borrador.md` y `entrega-3-guion-video-borrador.md`, en esta misma carpeta. Deben actualizarse tras las pruebas del producto integrado.
 
 **Pendiente para versión final:** enlaces a commits y ramas integradas, manual de usuario, manual de instalación, reporte de trabajo en equipo de máximo una página, capturas MLflow, video de máximo diez minutos y registro de retroalimentación a cuatro grupos. Verificar que las primeras diez páginas del PDF contengan todo el texto evaluable.
