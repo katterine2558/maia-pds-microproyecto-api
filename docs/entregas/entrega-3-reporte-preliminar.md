@@ -1,103 +1,101 @@
 # Predicción de reingreso hospitalario temprano en pacientes diabéticos
 
-**Entrega 3 — informe preliminar para integración del equipo**  
+**Informe de trabajo — Entrega 3**  
 Camilo Andrés Rodríguez Dueñas · Jasbyn Rainier Solano Carrillo · Leonardo Almanza Sánchez · Gineth Katerine Arias Carrillo  
-Actualizado el 20 de septiembre de 2026 a partir del informe de Entrega 2, la guía de Entrega Final y las pruebas locales de integración. **No es el PDF final ni acredita un despliegue conjunto en nube.**
+20 de septiembre de 2026
 
-## 1. Resumen del problema
+## 1. Problema y alcance
 
-### 1.1 Contexto y pregunta de negocio
+Los equipos de seguimiento hospitalario disponen de tiempo limitado para contactar a los pacientes después del alta. Este proyecto estudia si la información disponible al egreso permite ordenar los casos de pacientes diabéticos según su riesgo estimado de reingreso durante los siguientes 30 días.
 
-El reingreso hospitalario dentro de los 30 días posteriores al alta señala una oportunidad de mejorar el seguimiento de los pacientes. Con capacidad limitada para llamadas y controles, enfermería necesita decidir a qué egresos atender primero. La pregunta de negocio es: **¿qué pacientes diabéticos presentan mayor riesgo de reingresar dentro de los 30 días siguientes al alta?** El prototipo pretende ordenar un listado de egresos mediante una estimación de riesgo y permitir la consulta de un encuentro individual. Su resultado apoya la asignación de cupos de seguimiento; no reemplaza el criterio clínico, no indica tratamientos ni estima la causa del reingreso.
+La aplicación contempla una evaluación individual en la vista **Paciente** y una lista de egresos para organizar el seguimiento en **Priorización**. La estimación busca apoyar la distribución de la capacidad de atención; no determina tratamientos ni sustituye la valoración clínica.
 
-### 1.2 Alcance y conjunto de datos
+Se utilizó el conjunto *Diabetes 130-US Hospitals for Years 1999-2008*, publicado por el UCI Machine Learning Repository. De los 101.766 encuentros originales se excluyeron 1.652 registros de pacientes fallecidos y 771 correspondientes a egresos a hospicio. La base analítica quedó conformada por **99.343 encuentros de 69.990 pacientes**. Cerca del **11,4 %** de los encuentros registraron un reingreso antes de 30 días, identificado en la variable `readmitted` con el valor `<30`.
 
-El usuario previsto es el personal de enfermería de gestión hospitalaria. El tablero contempla Priorización, Paciente y Contexto; la carga de egresos se plantea mediante archivo, sin conexión a una historia clínica electrónica. Se emplea *Diabetes 130-US Hospitals for Years 1999-2008* (UCI Machine Learning Repository, dataset 296). De 101.766 encuentros originales, se excluyeron 1.652 de pacientes fallecidos y 771 con egreso a hospicio: la base analítica contiene 99.343 encuentros de 69.990 pacientes, con aproximadamente 11,4% de reingresos antes de 30 días. La etiqueta positiva corresponde a `readmitted` igual a `<30`. Los datos se versionaron con DVC y el repositorio conserva el puntero.
+Los datos proceden de hospitales de Estados Unidos entre 1999 y 2008. Por su origen y antigüedad, el desempeño medido en este conjunto no puede trasladarse directamente a hospitales colombianos ni a pacientes actuales.
 
-Los registros proceden de hospitales de Estados Unidos entre 1999 y 2008. Las cifras observadas no garantizan desempeño con pacientes contemporáneos o colombianos. La variable `race` se reserva para evaluar el comportamiento entre grupos y no entra como predictora.
+## 2. Modelamiento y resultados
 
-### 1.3 Cambios respecto de la segunda entrega
+### 2.1 Resultados de la Entrega 2
 
-En la Entrega 2 se compararon dos familias de modelos, se eligió el bosque aleatorio V2 y se desarrollaron las vistas del tablero. La vista Paciente enviaba un formulario por HTTP a `/predict`, pero la tarjeta presentada en el informe mostraba valores ilustrativos porque la API real quedaba para la siguiente iteración. El tablero ya había sido mostrado en Railway.
+La preparación de los datos incluyó el tratamiento de variables administrativas y clínicas, la agrupación de diagnósticos ICD-9 y la transformación de variables categóricas. Se conservó `patient_nbr` para separar los conjuntos sin compartir pacientes entre ellos, pero no se utilizó como predictor. La variable `race` se reservó para revisar el comportamiento del modelo entre grupos y tampoco se incorporó como entrada.
 
-Para la Entrega 3 se preparó una variante del modelo compatible con los diez campos del formulario, se desarrolló una API de inferencia y se conectó la vista Paciente con su respuesta. El flujo completo se comprobó **en el equipo local**. El despliegue conjunto mediante Docker en nube y la integración de la lista de Priorización siguen pendientes.
+Se compararon una regresión logística y un bosque aleatorio. La regresión logística inicial alcanzó **88,24 % de exactitud** en validación, pero detectó solo el **2,00 % de los reingresos**. Dada la baja proporción de casos positivos, la selección posterior prestó especial atención a la capacidad de identificar a los pacientes que sí reingresaron.
 
-## 2. Modelos desarrollados y evaluación
-
-### 2.1 Preparación, partición y características
-
-La base de modelamiento excluye los egresos por fallecimiento y hospicio, transforma las variables administrativas y clínicas según el EDA y conserva `patient_nbr` para agrupar la partición sin introducirlo como predictor. Se trataron diagnósticos ICD-9 por grupos, edades como rangos ordinales, antecedentes por tramos y variables nominales mediante codificación adecuada al pipeline. Los hiperparámetros y el umbral se seleccionaron sin usar la prueba reservada para el ajuste. En la regresión logística se documentaron 63.670 encuentros para entrenamiento, 15.852 para validación y 19.821 para prueba, sin pacientes compartidos.
-
-La regresión base logró 88,24% de exactitud en validación pero solo 2,00% de recall, lo que mostró que la exactitud no era suficiente con prevalencia cercana al 11,4%. Se compararon versiones con balanceo de clases, regularización, peso positivo, umbral y Elastic Net. La versión V5 conservó `C=0,5`, peso positivo 5 y umbral 0,30. Para bosque aleatorio se compararon cuatro escenarios de árbol y siete técnicas de desbalance con validación cruzada agrupada por paciente; el V2 acotó la profundidad a 12, con 400 árboles, peso positivo 5 y umbral 0,30.
-
-### 2.2 Comparación en prueba reservada y elección
+Las configuraciones elegidas fueron la regresión logística V5 y el bosque aleatorio V2. Ambas se evaluaron sobre **19.821 encuentros de prueba**, entre ellos **2.207 reingresos**.
 
 | Modelo | ROC-AUC | PR-AUC | Recall | Precisión | Falsos negativos |
 |---|---:|---:|---:|---:|---:|
-| Regresión logística V5 | 0,6589 | 0,2133 | 81,56% | 14,00% | 407 |
-| Bosque aleatorio V2 | 0,6673 | 0,2123 | 90,48% | 12,83% | 210 |
+| Regresión logística V5 | 0,6589 | 0,2133 | 81,56 % | 14,00 % | 407 |
+| Bosque aleatorio V2 | 0,6673 | 0,2123 | 90,48 % | 12,83 % | 210 |
 
-Ambos modelos se evaluaron sobre los mismos 19.821 encuentros, incluidos 2.207 reingresos. La capacidad de ordenamiento fue semejante: 0,0084 de ROC-AUC y 0,0010 de PR-AUC separaron a las familias. El bosque V2 se eligió porque, en el punto operativo evaluado, dejó escapar 210 reingresos frente a 407 de la regresión. La mejora en sensibilidad tiene un costo operativo: con precisión de 12,83 %, muchas alertas consumirían cupos de seguimiento sin corresponder a reingresos. La lista de egresos debe permitir ajustar la capacidad diaria y mostrar quiénes quedan sin cubrir. El recall no debe describirse como precisión ni deben extrapolarse estas métricas a otro modelo.
+Se eligió el bosque V2 porque detectó una mayor proporción de reingresos en el umbral evaluado: dejó sin identificar **210 casos**, frente a **407** de la regresión. Su precisión de **12,83 %** muestra el costo operativo de esa elección: muchos pacientes señalados para seguimiento no registraron un reingreso en el conjunto de prueba. Por ello, una lista operativa debe considerar cuántos contactos puede asumir el equipo de enfermería y cuáles casos quedarían fuera de esa capacidad.
 
-La comparación del 10% con mayor riesgo de la regresión V5 concentró el 22,97% de los reingresos, con lift 2,30. Este resultado pertenece a esa configuración y no debe confundirse con un indicador del V2 sin medirlo de nuevo. El límite de discriminación observado y la antigüedad del conjunto de datos impiden interpretar la herramienta como validada para uso clínico.
+La regresión V5 concentró el **22,97 % de los reingresos** en el 10 % de encuentros con mayor riesgo estimado, con un *lift* de **2,30**. Esta medición corresponde a la regresión. Si el equipo quiere comparar la utilidad de ambos modelos para construir una lista de priorización, debe calcular el mismo indicador para el bosque.
 
-### 2.3 Variante compatible con el formulario y MLflow
+### 2.2 Modelo preparado para el formulario de la Entrega 3
 
-Los experimentos de la segunda entrega se registraron en MLflow sobre una instancia EC2. Hay una incompatibilidad que debe reconocerse: el bosque V2 completo fue entrenado con más variables que los diez campos visibles en el formulario Paciente. Las métricas de la sección 2.2 corresponden exclusivamente a los modelos evaluados en Entrega 2.
+Durante la integración del tablero se identificó una diferencia entre el modelo seleccionado y la información solicitada en **Paciente**: el bosque V2 se entrenó con más variables que las diez disponibles en el formulario. Para probar el flujo completo se entrenó `bosque_formulario_e3_v1`, una nueva versión limitada a esas diez entradas.
 
-Como avance de Entrega 3 se entrenó `bosque_formulario_e3_v1` con las diez variables disponibles en Paciente (`src/models/entrenar_formulario_e3.py`). Se conservaron los 99.343 encuentros analíticos y se separó el 20 % para prueba agrupando por paciente: 79.522 encuentros para entrenamiento, 19.821 para prueba, 2.207 positivos en prueba y ningún paciente compartido. El modelo combina codificación de categorías y un bosque de 400 árboles, profundidad máxima 12, peso positivo 5 y umbral 0,30; el pipeline y su versión se guardaron juntos en `api/artifacts/modelo.joblib`.
+El entrenamiento utilizó los **99.343 encuentros** de la base analítica. La separación agrupada por paciente dejó **79.522 encuentros para entrenamiento** y **19.821 para prueba**, con **2.207 casos positivos** en este último conjunto. El pipeline reúne la codificación de categorías y un bosque de **400 árboles**, profundidad máxima de **12**, peso positivo de **5** y umbral de decisión de **0,30**. El artefacto se guardó en `api/artifacts/modelo.joblib`.
 
-En esta prueba, la variante restringida obtuvo ROC-AUC **0,6292**, PR-AUC **0,1913**, recall **89,90%**, precisión **12,32%** y **223 falsos negativos**. El bosque V2 empleó más variables y tuvo ROC-AUC 0,6673 en la comparación documentada: las dos versiones no deben presentarse como el mismo modelo. La variante del formulario **aún no se registró en MLflow** ni se desplegó en nube. El equipo debe decidir qué versión adoptará formalmente y documentar la corrida, firma, parámetros, artefacto y versión efectivamente servida.
+| Modelo utilizado en la prueba local | ROC-AUC | PR-AUC | Recall | Precisión | Falsos negativos |
+|---|---:|---:|---:|---:|---:|
+| `bosque_formulario_e3_v1` | 0,6292 | 0,1913 | 89,90 % | 12,32 % | 223 |
 
-**Pendiente para la versión final:** registrar la variante de Entrega 3 en MLflow; incorporar las evidencias requeridas de MLflow en EC2, con usuario e IP, y demostrar que la instancia queda detenida y no terminada.
+Estas métricas pertenecen al modelo del formulario y **no al bosque V2 de la Entrega 2**. La nueva versión conserva un recall alto al umbral probado, pero obtuvo valores menores de ROC-AUC y PR-AUC. Antes de elegir el modelo definitivo, el equipo debe decidir si mantiene el formulario de diez campos o si amplía las entradas del tablero para servir el V2. De esa decisión dependerán el artefacto que se despliegue y los resultados que se presenten como definitivos.
 
-## 3. Tablero y API desarrollados
+Los experimentos anteriores se documentaron en MLflow sobre EC2. **La variante `bosque_formulario_e3_v1` aún requiere registro en MLflow**, junto con sus parámetros, métricas, firma y artefacto.
 
-### 3.1 Flujo y estado de las vistas
+## 3. Aplicación e integración
 
-La vista Priorización debe recibir un archivo de egresos, verificar sus columnas, invocar la API y ordenar los encuentros por probabilidad estimada. Debe permitir ajustar la capacidad de seguimiento y separar los casos que caben en ella. **En el estado probado, esta vista sigue mostrando encuentros y cifras de ejemplo:** su pantalla indica expresamente que es demostrativa. No debe presentarse como una priorización calculada por el modelo.
+La solución se encuentra en dos repositorios. El tablero Streamlit presenta las vistas y envía solicitudes HTTP; la API FastAPI carga el pipeline y devuelve las predicciones.
 
-La vista Paciente recoge diez variables disponibles al alta, solicita una inferencia individual y muestra la probabilidad, el nivel de riesgo, el umbral y la versión del modelo. Contexto presenta gráficas descriptivas separadas de las predicciones individuales.
+La vista **Paciente** reúne diez datos del encuentro y consulta `POST /predict`. Presenta la probabilidad estimada, la categoría de riesgo, el umbral y la versión del modelo. La vista **Contexto** contiene información descriptiva del conjunto de datos.
 
-La API y el tablero se encuentran en repositorios distintos. El tablero se comunica por HTTP y no carga directamente el artefacto del modelo. `services/api.py` realiza las llamadas a `POST /predict` y `GET /health`; el servicio FastAPI en `api/main.py` recibe los campos del formulario, transforma las categorías visibles a las del conjunto de datos y devuelve probabilidad, umbral y versión.
+La vista **Priorización** todavía utiliza encuentros y cifras de demostración. Para conectarla con el modelo falta recibir un archivo de egresos, validar sus columnas, calcular las probabilidades y ordenar los resultados según la capacidad de seguimiento disponible. Este desarrollo es necesario para completar el uso operativo planteado en el proyecto.
 
-### 3.2 Pruebas locales de la API y del tablero
+### Prueba de integración del 20 de septiembre
 
-En la prueba HTTP local de la API, `/health` respondió con `{"estado":"ok","modelo":"bosque_formulario_e3_v1"}`. También se comprobó una respuesta de predicción y el rechazo de una estancia de cero días con estado 422.
+La API respondió localmente a `GET /health` con `{"estado":"ok","modelo":"bosque_formulario_e3_v1"}`. También se probó una solicitud de predicción y se verificó que una estancia de cero días produce una respuesta **422**.
 
-El **20 de septiembre de 2026** se ejecutó la API localmente en `127.0.0.1:8000` y el tablero Streamlit en `localhost:8501`. En la vista Paciente se utilizaron los datos visibles del formulario: edad `[70-80)`, admisión `Emergency`, servicio `Nephrology`, nueve días de estancia, nueve diagnósticos, 21 medicamentos, cinco ingresos previos, dos visitas previas a urgencias, A1C no medido y cambio de medicación `Sí`. Al pulsar **Calcular riesgo**, la pantalla presentó una **probabilidad de 0,61**, nivel **riesgo alto**, **umbral de decisión 0,30** y versión **`bosque_formulario_e3_v1`**. Se verificó así el consumo de la API desde la pantalla Paciente **en entorno local**.
+Después se ejecutaron la API en `127.0.0.1:8000` y el tablero en `localhost:8501`. En **Paciente** se ingresó un encuentro con edad `[70-80)`, admisión `Emergency`, servicio `Nephrology`, nueve días de estancia, nueve diagnósticos, 21 medicamentos, cinco ingresos previos, dos visitas previas a urgencias, A1C no medido y cambio de medicación `Sí`.
 
-Se corrigió además la tarjeta del resultado para retirar una cifra fija de «cohorte comparable» y ocultar el apartado de factores cuando la API no aporta factores explicativos. La pantalla corregida volvió a ejecutarse localmente y mostró el resultado sin texto HTML visible. Esta prueba no acredita la integración de Priorización ni el funcionamiento de una interfaz pública en nube.
+La pantalla mostró una **probabilidad de 0,61**, categoría **riesgo alto**, umbral **0,30** y versión **`bosque_formulario_e3_v1`**. La prueba confirmó que la vista Paciente recibió y presentó una respuesta de la API ejecutada en el mismo computador.
 
-**Pendiente para la versión final:** probar mensajes ante API no disponible y entradas incompletas; implementar y probar el archivo con varios egresos en Priorización; documentar una prueba funcional de ambos servicios desplegados. Incorporar al reporte final las evidencias de interfaz y respuestas HTTP pertinentes.
+Durante la revisión se retiró de la tarjeta una cifra fija de «cohorte comparable» y se ajustó la presentación de los factores explicativos, que la API actual no entrega. La pantalla se ejecutó nuevamente y mostró el resultado sin código HTML visible.
 
-## 4. Despliegue con Docker en nube
+## 4. Estado del despliegue
 
-La arquitectura prevista es tablero Streamlit → API de inferencia → pipeline de modelo empaquetado. La segunda entrega incluyó un Dockerfile del tablero y describió su publicación en Railway. Para la tercera entrega deben documentarse **ambos servicios**, la versión del modelo, sus URL, la configuración de comunicación entre ellos y una prueba funcional desde la interfaz pública. La publicación anterior del tablero, por sí sola, no acredita el despliegue de la nueva API.
+El repositorio del tablero contiene un `Dockerfile` y `railway.json`. El de la API contiene `api/Dockerfile` y `api/requirements.txt`. El tablero consulta la dirección configurada en `API_URL`; su valor local por defecto es `http://localhost:8000`.
 
-El repositorio del tablero incluye un `Dockerfile`, además de `railway.json`. La variable `API_URL` determina a qué servicio HTTP se envían las solicitudes; su valor por defecto en `services/api.py` es `http://localhost:8000`. Para la API se prepararon `api/Dockerfile` y `api/requirements.txt`. **Todavía no se ha comprobado la construcción y ejecución de ambos servicios con Docker ni su despliegue conjunto en nube.**
+La integración descrita en este informe se probó con ambos procesos en un computador. Para completar el despliegue de la Entrega 3 falta construir y ejecutar los contenedores, publicar los dos servicios, configurar la dirección de la API en el tablero y comprobar una predicción desde la interfaz pública. El despliegue anterior del tablero en Railway corresponde a la Entrega 2 y no demuestra que la nueva API ya esté publicada.
 
-**Pendiente para la versión final:** plataforma efectiva, configuración y comprobación de los contenedores, URL del tablero, URL de documentación de la API, pruebas públicas de salud y predicción, capturas y fecha de validación. Seguir las indicaciones de la guía sobre detener los recursos utilizados al concluir las pruebas.
+## 5. Acuerdos necesarios para terminar la entrega
 
-## 5. Principales resultados y conclusiones
+| Asunto | Decisión o comprobación | Resultado esperado |
+|---|---|---|
+| Modelo definitivo | Adoptar `bosque_formulario_e3_v1` o ampliar el formulario para utilizar V2. | Identificar una sola versión del modelo para el producto y el informe final. |
+| Registro experimental | Registrar en MLflow la versión elegida. | Relacionar parámetros, métricas y artefacto con el servicio desplegado. |
+| Priorización | Implementar carga, validación y evaluación de varios egresos; probar el ordenamiento y la capacidad de seguimiento. | Completar el flujo de trabajo previsto para enfermería. |
+| Despliegue | Probar los contenedores, publicar tablero y API y verificar su comunicación. | Documentar una prueba desde la interfaz pública. |
+| Documentación | Actualizar reporte, manuales y guion con base en las funciones terminadas. | Entregar instrucciones y evidencias consistentes con el producto. |
 
-En la segunda entrega, el bosque V2 identificó un mayor porcentaje de reingresos que la regresión V5 al umbral comparado, a costa de más seguimientos por cada caso correctamente detectado. La discriminación se mantuvo moderada y los datos históricos limitan cualquier extrapolación.
+## 6. Conclusiones
 
-En esta tercera entrega se preparó una variante limitada a los campos del formulario. Sus métricas de prueba son inferiores en ROC-AUC y PR-AUC a las documentadas para el V2, aunque conserva una sensibilidad alta al umbral evaluado. Se comprobó **localmente** que el formulario Paciente consulta la API y muestra una probabilidad calculada con la versión servida. El equipo debe revisar si acepta esta variante o amplía la entrada para servir el modelo V2, registrar el experimento y completar la priorización por archivo y el despliegue conjunto.
+La comparación de la Entrega 2 favoreció al bosque aleatorio V2 por su mayor detección de reingresos al umbral estudiado. La baja precisión observada exige, sin embargo, considerar la cantidad de contactos que producirían sus alertas.
 
-## 6. Repositorios y soportes
+Para la Entrega 3 se preparó una versión ajustada a los diez campos del formulario. El **20 de septiembre** se verificó localmente que la vista Paciente consulta la API y presenta la predicción calculada. La decisión inmediata del equipo es definir **qué modelo quedará como versión final**. A partir de ella se podrán cerrar el registro en MLflow, la integración de Priorización, el despliegue y las métricas del informe definitivo.
 
-- [Repositorio de modelos y API](https://github.com/katterine2558/maia-pds-microproyecto-api).
-- [Repositorio del tablero](https://github.com/katterine2558/maia-pds-microproyecto-ui).
-- [Borrador de integración del modelo, API y documentación: PR #19](https://github.com/katterine2558/maia-pds-microproyecto-api/pull/19).
-- [Borrador de integración de la vista Paciente: PR #7](https://github.com/katterine2558/maia-pds-microproyecto-ui/pull/7).
-- Fuentes de referencia interna: `docs/entregas/Entrega-2-reporte.pdf`; guía `maia_pds_proy_e3.pdf` aportada al equipo; dataset UCI *Diabetes 130-US Hospitals for Years 1999-2008*.
-- Borradores de soportes preparados en esta carpeta: `entrega-3-manual-usuario-borrador.md`, `entrega-3-manual-instalacion-borrador.md` y `entrega-3-guion-video-borrador.md`. Requieren actualización al terminar el producto.
+## 7. Repositorios y documentos de apoyo
 
-**Pendiente para la versión final:** integrar o revisar las ramas según decida el equipo; manuales definitivos, reporte de trabajo en equipo de máximo una página, evidencias de MLflow, video de máximo diez minutos y retroalimentación a cuatro grupos. Verificar que las primeras diez páginas del PDF contengan todo el texto evaluable.
+- [Repositorio de modelos y API](https://github.com/katterine2558/maia-pds-microproyecto-api) y [PR #19 de integración](https://github.com/katterine2558/maia-pds-microproyecto-api/pull/19).
+- [Repositorio del tablero](https://github.com/katterine2558/maia-pds-microproyecto-ui) y [PR #7 de la vista Paciente](https://github.com/katterine2558/maia-pds-microproyecto-ui/pull/7).
+- Fuentes internas para revisar resultados y requisitos: `docs/entregas/Entrega-2-reporte.pdf` y `maia_pds_proy_e3.pdf`.
+- Borradores que deben ajustarse al cerrar el producto: `entrega-3-manual-usuario-borrador.md`, `entrega-3-manual-instalacion-borrador.md` y `entrega-3-guion-video-borrador.md`.
 
-## 7. Reporte de trabajo en equipo
+## 8. Reporte de trabajo en equipo
 El trabajo se reparte por item de trabajo, no por persona: cada item vive en su propia rama feature/*, sale de develop y vuelve a develop mediante un pull request con revision de al menos un companero. Los merges conservan el historial completo, sin squash ni rebase que colapsen la autoria, de modo que el aporte de cada integrante queda verificable en el repositorio. main conserva unicamente los estados integrados de la entrega.
 Entre el 17 y el 22 de septiembre se abrieron (Por completar X Numero) de pull requests entre los dos repositorios, de los cuales (Por completar X numero) se integraron.
 
-## 7.1 Quien Hizo que
+## 8.1 Quien Hizo que
