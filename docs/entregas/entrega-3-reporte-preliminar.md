@@ -19,7 +19,7 @@ Los registros proceden de hospitales de Estados Unidos entre 1999 y 2008. Las ci
 
 En la Entrega 2 se compararon dos familias de modelos, se eligió el bosque aleatorio V2 y se desarrollaron las vistas del tablero. La vista Paciente enviaba un formulario por HTTP a `/predict`, pero la tarjeta presentada en el informe mostraba valores ilustrativos porque la API real quedaba para la siguiente iteración. El tablero ya había sido mostrado en Railway. Esta Entrega 3 exige comprobar inferencias de un modelo empaquetado, su servicio por API, el consumo de la API desde el tablero y un despliegue conjunto mediante Docker en nube.
 
-**Pendiente para versión final:** describir únicamente los cambios que efectivamente se integren, con enlaces a commits, artefactos y pruebas. La versión de `develop` consultada para este borrador no contiene la aplicación FastAPI ni el artefacto entrenado.
+**Pendiente para versión final:** incluir enlaces a los commits de integración y distinguir el avance local descrito aquí de lo que efectivamente se incorpore a `develop`. La versión original de `develop` consultada no contenía la aplicación FastAPI ni el artefacto entrenado.
 
 ## 2. Modelos desarrollados y evaluación
 
@@ -44,7 +44,11 @@ La comparación del 10% con mayor riesgo de la regresión V5 concentró el 22,97
 
 Los experimentos de la segunda entrega se registraron en MLflow sobre una instancia EC2; el reporte previo muestra las corridas de ambas familias, el usuario de acceso y la IP pública. La versión final debe señalar **la corrida y el artefacto exactos que carga la API** junto con sus parámetros, columnas, preprocesamiento y umbral. Hay una incompatibilidad por resolver: el bosque V2 completo fue entrenado con más variables que los diez campos visibles en el formulario Paciente. Se puede ampliar la entrada al conjunto de variables del V2 o entrenar y evaluar una variante restringida al formulario, con identificación y métricas propias. Las métricas de la tabla anterior solo corresponden a las versiones evaluadas en Entrega 2.
 
-**Pendiente para versión final:** ID de corrida, firma y ruta del artefacto; evaluación de cualquier variante del formulario; capturas requeridas de MLflow en EC2 con usuario e IP; evidencia de que la instancia queda detenida y no terminada.
+Como avance aislado de Entrega 3 se entrenó `bosque_formulario_e3_v1` con las diez variables disponibles en Paciente (`src/models/entrenar_formulario_e3.py`). Se conservaron los 99.343 encuentros analíticos y se separó el 20 % para prueba agrupando por paciente: 79.522 encuentros para entrenamiento, 19.821 para prueba, 2.207 positivos en prueba y ningún paciente compartido. El modelo combina codificación de categorías y un bosque de 400 árboles, profundidad máxima 12, peso positivo 5 y umbral 0,30; el pipeline y su versión se guardaron juntos en `api/artifacts/modelo.joblib`.
+
+En esta prueba, la variante restringida obtuvo ROC-AUC **0,6292**, PR-AUC **0,1913**, recall **89,90 %**, precisión **12,32 %** y **223 falsos negativos**. El bosque V2 de la sección 2.2 empleó más variables y tuvo ROC-AUC 0,6673 en la misma partición prevista para comparación; no debe tratarse a las dos versiones como el mismo modelo. Esta variante es un avance local reproducible que **aún no se registró en MLflow** ni se desplegó en nube; se requiere comprobación del equipo antes de sustituir formalmente el V2 para la entrega.
+
+**Pendiente para versión final:** registrar el experimento en MLflow e identificar corrida, firma y ruta del artefacto; capturas requeridas de MLflow en EC2 con usuario e IP; evidencia de que la instancia queda detenida y no terminada.
 
 ## 3. Tablero y API desarrollados
 
@@ -56,13 +60,15 @@ La API y el tablero se ubican en repositorios distintos. El tablero se comunica 
 
 La inspección de las fuentes del tablero permite precisar qué está construido: `app.py` organiza las tres vistas; `views/paciente.py` recoge diez datos del encuentro y envía un diccionario a `services/api.py`, que implementa `POST /predict` y `GET /health` con un tiempo máximo de espera de diez segundos. La vista solo presenta un resultado si la respuesta incluye una probabilidad y un umbral numéricos válidos; ante un error informa al usuario. `views/contexto.py` ofrece visualizaciones descriptivas separadas de la predicción. En la copia consultada, `views/priorizacion.py` conserva ocho encuentros de ejemplo y cifras fijas de capacidad y cobertura; todavía no recibe un archivo ni consulta la API. Por ello, una captura de esa pantalla no serviría como evidencia de priorización calculada por el modelo.
 
-**Pendiente para versión final:** nombres reales de endpoints, esquema y validaciones; capturas del mismo encuentro en `/predict` y en el tablero; prueba de un archivo con varios egresos; mensajes ante datos incompletos y API no disponible; eliminación de toda cifra ilustrativa presentada como inferencia.
+Se preparó una API FastAPI en `api/main.py` para esta variante: `GET /health` informa la versión cargada y `POST /predict` recibe los diez campos del formulario, transforma las categorías visibles a los valores originales del conjunto de datos y devuelve probabilidad, umbral y versión. En una prueba HTTP local, `/health` respondió 200, `/predict` respondió 200 con una probabilidad calculada, y una estancia de cero días produjo 422. Esta prueba acredita el servicio **local** y el contrato del formulario; aún no acredita el consumo desde la versión publicada del tablero.
+
+**Pendiente para versión final:** integrar y probar el tablero real contra esta API; capturas del mismo encuentro en ambos; prueba de un archivo con varios egresos; mensajes ante datos incompletos y API no disponible; eliminación de toda cifra ilustrativa presentada como inferencia.
 
 ## 4. Despliegue con Docker en nube
 
 La arquitectura esperada es tablero Streamlit → API de inferencia → pipeline de modelo empaquetado. La segunda entrega incluyó un Dockerfile del tablero y describió su publicación en Railway. La tercera debe documentar el artefacto de despliegue de **ambos servicios**, la versión del modelo, sus URL, la configuración de comunicación entre servicios y una prueba funcional desde la interfaz pública. La existencia previa de la interfaz en Railway, por sí sola, no acredita el despliegue de la API.
 
-El repositorio del tablero ya incluye un `Dockerfile` con Python 3.12, instalación mediante `uv.lock`, exposición del puerto 8501 y verificación de salud de Streamlit, además de `railway.json`. La variable `API_URL` determina a qué servicio HTTP se envían las solicitudes; su valor por defecto en `services/api.py` es `http://localhost:8000`, y el Dockerfile define `http://api:8000` para una red de contenedores. En un despliegue en Railway debe configurarse con la dirección realmente accesible de la API. En el repositorio de modelos consultado aún no se encontró el servicio FastAPI ni su imagen de contenedor; esta parte no puede presentarse como despliegue realizado.
+El repositorio del tablero ya incluye un `Dockerfile` con Python 3.12, instalación mediante `uv.lock`, exposición del puerto 8501 y verificación de salud de Streamlit, además de `railway.json`. La variable `API_URL` determina a qué servicio HTTP se envían las solicitudes; su valor por defecto en `services/api.py` es `http://localhost:8000`, y el Dockerfile define `http://api:8000` para una red de contenedores. En un despliegue en Railway debe configurarse con la dirección realmente accesible de la API. Para la API se prepararon `api/Dockerfile` y `api/requirements.txt`; **la imagen todavía no se construyó ni se probó en Docker o en nube**.
 
 **Pendiente para versión final:** plataforma efectiva, Dockerfiles y configuración, URL del tablero, URL de documentación de la API, prueba de salud y predicción, capturas y fecha de validación. Según la guía, detener las máquinas y servicios usados tras las pruebas sin terminarlos.
 
@@ -70,7 +76,7 @@ El repositorio del tablero ya incluye un `Dockerfile` con Python 3.12, instalaci
 
 Los resultados confirmados hasta la segunda entrega muestran que el bosque V2 identificó un mayor porcentaje de reingresos que la regresión V5 al umbral comparado, a costa de más seguimientos por cada caso correctamente detectado. La capacidad de discriminación se mantuvo moderada y los datos históricos limitan cualquier extrapolación. El valor del prototipo dependerá de servir el mismo pipeline evaluado, mostrar probabilidades realmente calculadas y permitir que enfermería interprete el ordenamiento dentro de su capacidad disponible.
 
-**Pendiente para versión final:** resultados de las pruebas de API y tablero, comportamiento del despliegue, versión verdaderamente servida, incidencias y limitaciones. Si la versión desplegada cambia respecto del V2, actualizar esta conclusión con sus métricas verificadas.
+La nueva variante limitada a los campos del formulario produjo inferencias reales por API local y presentó menor ROC-AUC y PR-AUC que el V2 original, aunque conservó una sensibilidad alta al umbral elegido. La comparación exige cuidado: se ha cambiado el conjunto de variables y queda pendiente el registro del experimento. **Pendiente para versión final:** resultados de pruebas con tablero integrado, comportamiento del despliegue, versión verdaderamente servida, incidencias y limitaciones.
 
 ## 6. Repositorios y soportes
 
