@@ -1,9 +1,8 @@
 # Predicción de reingreso hospitalario temprano en pacientes diabéticos
 
-**Entrega 3 — informe preliminar para integración del equipo**  
+**Entrega 3 Micro-proyecto - Desarrollo de Soluciones  - MAIA**  
 Camilo Andrés Rodríguez Dueñas · Jasbyn Rainier Solano Carrillo · Leonardo Almanza Sánchez · Gineth Katerine Arias Carrillo  
-Preparado el 20 de septiembre de 2026 a partir del informe definitivo de Entrega 2 y la guía de Entrega Final. **No es el PDF final ni acredita funcionalidades aún no probadas.**
-
+Repositorios: katterine2558 / maia-pds-microproyecto-api
 ## 1. Resumen del problema
 
 ### 1.1 Contexto y pregunta de negocio
@@ -12,7 +11,7 @@ El reingreso hospitalario dentro de los 30 días posteriores al alta señala una
 
 ### 1.2 Alcance y conjunto de datos
 
-El usuario previsto es el personal de enfermería de gestión hospitalaria. El tablero contempla Priorización, Paciente y Contexto; la carga de egresos se realiza mediante archivo, sin conexión a una historia clínica electrónica. Se emplea *Diabetes 130-US Hospitals for Years 1999-2008* (UCI Machine Learning Repository, dataset 296). De 101.766 encuentros originales, se excluyeron 1.652 de pacientes fallecidos y 771 con egreso a hospicio: la base analítica contiene 99.343 encuentros de 69.990 pacientes, con aproximadamente 11,4 % de reingresos antes de 30 días. La etiqueta positiva corresponde a `readmitted` igual a `<30`. Los datos se versionaron con DVC y el repositorio conserva el puntero.
+El usuario previsto es el personal de enfermería de gestión hospitalaria. El tablero contempla Priorización, Paciente y Contexto; la carga de egresos se realiza mediante archivo, sin conexión a una historia clínica electrónica. Se emplea *Diabetes 130-US Hospitals for Years 1999-2008* (UCI Machine Learning Repository, dataset 296). De 101.766 encuentros originales, se excluyeron 1.652 de pacientes fallecidos y 771 con egreso a hospicio: la base analítica contiene 99.343 encuentros de 69.990 pacientes, con aproximadamente 11,4% de reingresos antes de 30 días. La etiqueta positiva corresponde a `readmitted` igual a `<30`. Los datos se versionaron con DVC y el repositorio conserva el puntero.
 
 Los registros proceden de hospitales de Estados Unidos entre 1999 y 2008. Las cifras observadas no garantizan desempeño con pacientes contemporáneos o colombianos. La variable `race` se reserva para evaluar el comportamiento entre grupos y no entra como predictora.
 
@@ -28,18 +27,18 @@ En la Entrega 2 se compararon dos familias de modelos, se eligió el bosque alea
 
 La base de modelamiento excluye los egresos por fallecimiento y hospicio, transforma las variables administrativas y clínicas según el EDA y conserva `patient_nbr` para agrupar la partición sin introducirlo como predictor. Se trataron diagnósticos ICD-9 por grupos, edades como rangos ordinales, antecedentes por tramos y variables nominales mediante codificación adecuada al pipeline. Los hiperparámetros y el umbral se seleccionaron sin usar la prueba reservada para el ajuste. En la regresión logística se documentaron 63.670 encuentros para entrenamiento, 15.852 para validación y 19.821 para prueba, sin pacientes compartidos.
 
-La regresión base logró 88,24 % de exactitud en validación pero solo 2,00 % de recall, lo que mostró que la exactitud no era suficiente con prevalencia cercana al 11,4 %. Se compararon versiones con balanceo de clases, regularización, peso positivo, umbral y Elastic Net. La versión V5 conservó `C=0,5`, peso positivo 5 y umbral 0,30. Para bosque aleatorio se compararon cuatro escenarios de árbol y siete técnicas de desbalance con validación cruzada agrupada por paciente; el V2 acotó la profundidad a 12, con 400 árboles, peso positivo 5 y umbral 0,30.
+La regresión base logró 88,24% de exactitud en validación pero solo 2,00% de recall, lo que mostró que la exactitud no era suficiente con prevalencia cercana al 11,4%. Se compararon versiones con balanceo de clases, regularización, peso positivo, umbral y Elastic Net. La versión V5 conservó `C=0,5`, peso positivo 5 y umbral 0,30. Para bosque aleatorio se compararon cuatro escenarios de árbol y siete técnicas de desbalance con validación cruzada agrupada por paciente; el V2 acotó la profundidad a 12, con 400 árboles, peso positivo 5 y umbral 0,30.
 
 ### 2.2 Comparación en prueba reservada y elección
 
 | Modelo | ROC-AUC | PR-AUC | Recall | Precisión | Falsos negativos |
 |---|---:|---:|---:|---:|---:|
-| Regresión logística V5 | 0,6589 | 0,2133 | 81,56 % | 14,00 % | 407 |
-| Bosque aleatorio V2 | 0,6673 | 0,2123 | 90,48 % | 12,83 % | 210 |
+| Regresión logística V5 | 0,6589 | 0,2133 | 81,56% | 14,00% | 407 |
+| Bosque aleatorio V2 | 0,6673 | 0,2123 | 90,48% | 12,83% | 210 |
 
-Ambos modelos se evaluaron sobre los mismos 19.821 encuentros, incluidos 2.207 reingresos. La capacidad de ordenamiento fue semejante: 0,0084 de ROC-AUC y 0,0010 de PR-AUC separaron a las familias. El bosque V2 se eligió porque, en el punto operativo evaluado, dejó escapar 210 reingresos frente a 407 de la regresión. La mejora en sensibilidad tiene un costo operativo: con precisión de 12,83 %, muchas alertas consumirían cupos de seguimiento sin corresponder a reingresos. La lista de egresos debe permitir ajustar la capacidad diaria y mostrar quiénes quedan sin cubrir. No describir el recall como precisión ni extrapolar las métricas a otro modelo.
+Ambos modelos se evaluaron sobre los mismos 19.821 encuentros, incluidos 2.207 reingresos. La capacidad de ordenamiento fue semejante: 0,0084 de ROC-AUC y 0,0010 de PR-AUC separaron a las familias. El bosque V2 se eligió porque, en el punto operativo evaluado, dejó escapar 210 reingresos frente a 407 de la regresión. La mejora en sensibilidad tiene un costo operativo: con precisión de 12,83%, muchas alertas consumirían cupos de seguimiento sin corresponder a reingresos. La lista de egresos debe permitir ajustar la capacidad diaria y mostrar quiénes quedan sin cubrir. No describir el recall como precisión ni extrapolar las métricas a otro modelo.
 
-La comparación del 10 % con mayor riesgo de la regresión V5 concentró el 22,97 % de los reingresos, con lift 2,30. Este resultado pertenece a esa configuración y no debe confundirse con un indicador del V2 sin medirlo de nuevo. El límite de discriminación observado y la antigüedad del dataset impiden interpretar la herramienta como validada para uso clínico.
+La comparación del 10% con mayor riesgo de la regresión V5 concentró el 22,97% de los reingresos, con lift 2,30. Este resultado pertenece a esa configuración y no debe confundirse con un indicador del V2 sin medirlo de nuevo. El límite de discriminación observado y la antigüedad del dataset impiden interpretar la herramienta como validada para uso clínico.
 
 ### 2.3 Experimentos MLflow y versión que será servida
 
@@ -81,3 +80,9 @@ Los resultados confirmados hasta la segunda entrega muestran que el bosque V2 id
 - Borradores de soportes preparados a partir de las fuentes revisadas: `entrega-3-manual-usuario-borrador.md`, `entrega-3-manual-instalacion-borrador.md` y `entrega-3-guion-video-borrador.md`, en esta misma carpeta. Deben actualizarse tras las pruebas del producto integrado.
 
 **Pendiente para versión final:** enlaces a commits y ramas integradas, manual de usuario, manual de instalación, reporte de trabajo en equipo de máximo una página, capturas MLflow, video de máximo diez minutos y registro de retroalimentación a cuatro grupos. Verificar que las primeras diez páginas del PDF contengan todo el texto evaluable.
+
+## 7. Reporte de trabajo en equipo
+El trabajo se reparte por item de trabajo, no por persona: cada item vive en su propia rama feature/*, sale de develop y vuelve a develop mediante un pull request con revision de al menos un companero. Los merges conservan el historial completo, sin squash ni rebase que colapsen la autoria, de modo que el aporte de cada integrante queda verificable en el repositorio. main conserva unicamente los estados integrados de la entrega.
+Entre el 17 y el 22 de septiembre se abrieron (Por completar X Numero) de pull requests entre los dos repositorios, de los cuales (Por completar X numero) se integraron.
+
+## 7.1 Quien Hizo que
