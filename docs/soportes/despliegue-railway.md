@@ -30,17 +30,41 @@ Desde el panel de Railway, en la cuenta donde vive el tablero:
    # {"estado":"ok","modelo":"bosque_formulario_e3_v1"}
    ```
 
-## Conectar el tablero
+## Variables de ambiente
 
-En el proyecto del **tablero** (repositorio `-ui`), agregar la variable:
+La API no lee ninguna variable propia: el artefacto viaja dentro de la imagen y
+su ruta se resuelve desde `__file__`. La unica variable que interviene es
+`PORT`, y la inyecta Railway.
 
-```
-API_URL=https://<dominio-de-la-api>
-```
+### Servicio de la API (este repositorio)
 
-Sin barra final: `services/api.py` la agrega. Railway reinicia el servicio al
-guardar la variable. Despues, en la vista Paciente, el boton "Calcular riesgo"
-debe devolver una probabilidad en lugar de un error de conexion.
+| Variable | Quien la define | Valor |
+|---|---|---|
+| `PORT` | Railway, en tiempo de ejecucion | No agregarla a mano. El `CMD` la lee con `${PORT:-8000}`; fijarla en el panel desincroniza el puerto real del puerto destino del dominio. |
+
+No hacen falta credenciales. En particular **no** van aqui las llaves de AWS
+(`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) ni la URI de MLflow: DVC y
+MLflow pertenecen al ciclo de entrenamiento, y el servicio desplegado solo
+sirve un `modelo.joblib` ya empaquetado.
+
+Ajustes del panel que no son variables, pero sin los cuales no despliega:
+rama `develop` en **Settings → Source**, builder Dockerfile con ruta
+`api/Dockerfile` en **Settings → Build**, y el dominio generado en
+**Settings → Networking** apuntando al puerto que imprimen los logs.
+
+### Servicio del tablero (repositorio `-ui`)
+
+| Variable | Quien la define | Valor |
+|---|---|---|
+| `API_URL` | A mano, en el panel del tablero | `https://<dominio-de-la-api>`, sin barra final: `services/api.py` la agrega |
+| `PORT` | Railway, en tiempo de ejecucion | No agregarla a mano |
+
+`API_URL` es obligatoria. El `Dockerfile` del tablero trae
+`ENV API_URL=http://api:8000`, que es el nombre del servicio dentro de
+`docker-compose`. En Railway ese nombre no resuelve, asi que si la variable no
+se sobreescribe el tablero apunta a un host inexistente y las dos vistas que
+consumen el modelo fallan con error de conexion. Railway reinicia el servicio
+al guardar la variable.
 
 ## Quien puede hacerlo
 
