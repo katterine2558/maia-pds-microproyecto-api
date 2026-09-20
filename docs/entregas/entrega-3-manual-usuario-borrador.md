@@ -1,4 +1,4 @@
-# Manual de usuario del tablero — borrador verificable
+# Manual de usuario del tablero — borrador
 
 **Producto:** priorización de seguimiento tras el alta para pacientes diabéticos. **Estado:** basado en el código de la rama `develop` revisado el 20 de septiembre de 2026. Revisar tras integrar la API y la carga de egresos. El resultado es orientativo y requiere criterio clínico.
 
