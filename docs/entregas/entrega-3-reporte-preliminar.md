@@ -35,9 +35,13 @@ Al preparar la integración se encontró que el bosque V2 había sido entrenado 
 
 | Modelo utilizado en la prueba local | ROC-AUC | PR-AUC | Recall | Precisión | Falsos negativos |
 |---|---:|---:|---:|---:|---:|
-| `bosque_formulario_e3_v1` | 0,6292 | 0,1913 | 89,90 % | 12,32 % | 223 |
+| `bosque_formulario_e3_v1` | 0,6310 | 0,1929 | 90,89 % | 12,26 % | 201 |
 
-El modelo del formulario obtuvo valores menores de ROC-AUC y PR-AUC que el bosque V2. Las métricas de los dos modelos deben mantenerse diferenciadas: la predicción mostrada actualmente en Paciente proviene de `bosque_formulario_e3_v1`, mientras que los resultados de V2 corresponden al modelo estudiado en la Entrega 2 con más variables de entrada. Los experimentos anteriores se documentaron en MLflow sobre EC2. Antes de cerrar la entrega se debe registrar allí el modelo que quede en uso, con sus parámetros, métricas y artefacto. La variante `bosque_formulario_e3_v1` todavía no cuenta con ese registro.
+El modelo del formulario obtuvo valores menores de ROC-AUC y PR-AUC que el bosque V2. Las métricas de los dos modelos deben mantenerse diferenciadas: la predicción mostrada en Paciente proviene de `bosque_formulario_e3_v1`, mientras que los resultados de V2 corresponden al modelo estudiado en la Entrega 2 con más variables de entrada.
+
+El modelo que sirve la API quedó registrado en el servidor de MLflow sobre EC2, en el experimento `readmision-diabetes`, bajo la corrida `bosque-formulario-e3-v1` (`1ca8cedf2b9b41378c222fc6129ac49d`), con sus once parámetros, sus métricas y el artefacto empaquetado. El registro se hizo con `src/models/experimento_formulario_e3.py`, que separa el experimento del entrenamiento: `entrenar_formulario_e3.py` debe poder correrse sin credenciales ni red al empaquetar la API, mientras que el registro exige el servidor arriba.
+
+Al registrar la corrida se volvió a entrenar el modelo y las métricas no resultaron idénticas a las de la primera ejecución, pese a compartir `random_state=42`: ROC-AUC pasó de 0,6292 a 0,6310 y los falsos negativos bajaron de 223 a 201. La diferencia proviene del entorno de ejecución —versión de scikit-learn y el paralelismo de `n_jobs=-1` en el bosque—, no de un cambio en los datos ni en los hiperparámetros. Las cifras reportadas arriba son las de la corrida registrada en MLflow, que corresponden al artefacto que efectivamente sirve la API: la reproducibilidad exacta entre máquinas exigiría fijar también las versiones de las bibliotecas.
 
 ## 3. Descripción del tablero desarrollado y su funcionalidad
 
@@ -48,7 +52,7 @@ El tablero está desarrollado en Streamlit y contiene las vistas **Paciente**, *
 
 Realice en una prueba local, `/health` respondió con `{"estado":"ok","modelo":"bosque_formulario_e3_v1"}`. También se comprobó una respuesta de predicción y el rechazo de una estancia de cero días con estado **422**.
 
-Se ejecutaron la API en `127.0.0.1:8000` y el tablero en `localhost:8501`. En Paciente se ingresó un encuentro con edad `[70-80)`, admisión `Emergency`, servicio `Nephrology`, nueve días de estancia, nueve diagnósticos, 21 medicamentos, cinco ingresos previos, dos visitas previas a urgencias, A1C no medido y cambio de medicación `Sí`.vLa pantalla presentó una **probabilidad de 0,61**, **riesgo alto**, umbral de **0,30** y versión **`bosque_formulario_e3_v1`**. Se comprobó así que el formulario consultó la API local y mostró su respuesta. También se retiró de la tarjeta una cifra fija de «cohorte comparable»; tras la corrección, el resultado se presentó sin código HTML visible.
+Se ejecutaron la API en `127.0.0.1:8000` y el tablero en `localhost:8501`. En Paciente se ingresó un encuentro con edad `[70-80)`, admisión `Emergency`, servicio `Nephrology`, nueve días de estancia, nueve diagnósticos, 21 medicamentos, cinco ingresos previos, dos visitas previas a urgencias, A1C no medido y cambio de medicación `Sí`. La pantalla presentó una **probabilidad de 0,64**, **riesgo alto**, umbral de **0,30** y versión **`bosque_formulario_e3_v1`**. Se comprobó así que el formulario consultó la API local y mostró su respuesta. También se retiró de la tarjeta una cifra fija de «cohorte comparable»; tras la corrección, el resultado se presentó sin código HTML visible.
 
 ## 4. Despliegue del tablero y la API
 
