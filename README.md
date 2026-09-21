@@ -288,6 +288,33 @@ uv run python -m src.models.experimento_formulario_e3
 Hace el mismo entrenamiento y deja en MLflow los parámetros, las métricas y el
 artefacto empaquetado.
 
+### Del experimento al servicio
+
+La API **no lee el modelo de MLflow**: sirve el `api/artifacts/modelo.joblib`
+que viaja dentro de su imagen. MLflow guarda el rastro de cómo se obtuvo ese
+archivo; el Model Registry no se usa. Llegar de un experimento a la API son tres
+pasos:
+
+1. **Entrenar y registrar.** `experimento_formulario_e3` reentrena, escribe
+   `api/artifacts/modelo.joblib` y `metricas.json`, y sube el mismo archivo a
+   MLflow como artefacto de una corrida etiquetada `sirve_api=si`.
+2. **Versionar.** Se hace commit de `api/artifacts/` junto con el código que lo
+   produjo.
+3. **Reconstruir.** La imagen de la API se construye de nuevo (`docker compose
+   build api`, o el push a `develop` en Railway) y se reinicia el servicio.
+
+Para comprobar que el modelo que sirve la API es el que quedó registrado, se
+comparan las métricas de la corrida `sirve_api=si` en MLflow con
+`api/artifacts/metricas.json` (`roc_auc`, `recall`, `falsos_negativos`). No sirve
+comparar el nombre: `bosque_formulario_e3_v1`, que devuelve `/health` y que lleva
+la etiqueta `modelo`, es el mismo en cualquier reentrenamiento.
+
+> **No reemplazar `modelo.joblib` sin registrar la corrida**, ni registrar una
+> corrida sin versionar el archivo que produjo. Cualquiera de las dos deja al
+> reporte citando métricas de un modelo distinto del que está sirviendo la API.
+> La prueba `test_predict_del_caso_de_referencia_no_cambia` avisa cuando el
+> artefacto cambia.
+
 ### Desplegar en un servidor propio (EC2 u otro con Docker)
 
 El mismo `docker-compose.yml` sirve. Si el firewall solo permite ciertos puertos,
