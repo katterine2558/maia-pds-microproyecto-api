@@ -114,6 +114,6 @@ A lo largo del proyecto se abrieron 22 *pull requests* en el repositorio de mode
 | Gineth Katerine Arias Carrillo | Infraestructura de datos (DVC, S3), servidor de MLflow en EC2 con su proxy autenticado, fuentes del tablero, integración de las vistas con la API, artefactos de despliegue y documentación | 95 · 17 |
 | Camilo Andrés Rodríguez Dueñas | Regresión logística y sus versiones, modelo de diez variables para el formulario, servicio FastAPI y empaquetado del modelo, borradores de reporte y manuales | 24 · 2 |
 | Leonardo Almanza Sánchez | Ingeniería de características, corrección de la fuga en la selección, escenarios de balanceo, barridos registrados como corridas anidadas en MLflow, conclusiones sobre los modelos | 24 · 0 |
-| Jasbyn Rainier Solano Carrillo | Look and feel inicial del tablero, línea base de infraestructura y arquitectura, despliegue en Railway | 4 · 2 |
+| Jasbyn Rainier Solano Carrillo | Look and feel inicial del tablero (patron de diseño, vistas, componentes, temas y navegación), línea base de infraestructura y arquitectura, despliegue en Railway del tablero, despliegue en Railway del API, integración Tablero y API por red privada Railway IP V6, Ajuste de skeleton loading en tablero durante la consulta de API | 5 · 3 |
 
 *La primera cifra corresponde al repositorio de modelos y API; la segunda, al del tablero.*
