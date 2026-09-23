@@ -133,7 +133,7 @@ Capturas de la máquina de MLflow, con el usuario y la IP visibles en cada una. 
 
 El trabajo se reparte por ítem de trabajo, no por persona: cada ítem vive en su propia rama `feature/*`, sale de `develop` y vuelve a `develop` mediante un *pull request*. Los merges conservan el historial completo, sin *squash* ni *rebase* que colapsen la autoría, de modo que el aporte de cada integrante queda verificable en el repositorio. `main` conserva únicamente los estados integrados de cada entrega, con su *tag*.
 
-A lo largo del proyecto se abrieron pull requests en los dos repositorios: 35 de 36 integrados en el de modelos y API, y los 16 del tablero integrados.
+A lo largo del proyecto todo el trabajo entró por pull request en los dos repositorios: todos los del tablero quedaron integrados, y en el de modelos y API todos salvo uno.
 
 ## 7.1 Quién hizo qué
 
