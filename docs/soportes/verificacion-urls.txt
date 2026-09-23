@@ -1,0 +1,44 @@
+Verificacion de las URLs desplegadas en la EC2 de despliegue (API y tablero con Docker Compose)
+Fecha: 2026-09-21 09:39:04 -05 (14:39:04 UTC)
+Servidor: http://44.222.156.225  (EC2 Ubuntu 24.04, us-east-1)
+Ejecutado desde: portatil del autor, red externa a AWS
+
+GET http://44.222.156.225:8001/health -> HTTP 200 en 0.171976s
+GET http://44.222.156.225:8001/docs -> HTTP 200 en 0.170412s
+GET http://44.222.156.225:8001/openapi.json -> HTTP 200 en 0.183826s
+GET http://44.222.156.225:8050/ -> HTTP 200 en 0.268669s
+GET http://44.222.156.225:8050/_stcore/health -> HTTP 200 en 0.252825s
+
+$ curl -s http://44.222.156.225:8001/health
+{"estado":"ok","modelo":"bosque_formulario_e3_v1"}
+
+$ curl -s -X POST http://44.222.156.225:8001/predict -H "content-type: application/json" -d @paciente.json   # paciente de ejemplo (70-80, nefrologia, 5 ingresos previos)
+{"probabilidad":0.6355354863736404,"umbral":0.3,"modelo":"bosque_formulario_e3_v1"}
+
+$ curl -s http://44.222.156.225:8001/openapi.json  (rutas)
+['/health', '/predict']
+
+Estado en el servidor (ssh):
+arranque de la maquina: 2026-09-21 14:37:28 UTC
+repo: df0dd82 Merge pull request #24 from katterine2558/feature/variables-despliegue-api
+reingreso-api-1 | Up About a minute (healthy) | 0.0.0.0:8001->8000/tcp, [::]:8001->8000/tcp
+reingreso-tablero-1 | Up About a minute (healthy) | 0.0.0.0:8050->8501/tcp, [::]:8050->8501/tcp
+  /reingreso-api-1 restart=unless-stopped
+  /reingreso-tablero-1 restart=unless-stopped
+imagen reingreso-ui 808MB
+imagen reingreso-api 687MB
+  disco: 16G usados de 19G (84%)
+  Ubuntu 24.04.4 LTS | Docker version 29.8.1, build 4a63305 | Docker Compose version v5.5.1
+  vCPU: 2
+  RAM: 3907 MB
+--- docker-compose.override.yml
+# Solo en este servidor: puertos que el security group ya permite y reinicio automatico.
+services:
+  api:
+    restart: unless-stopped
+    ports: !override
+      - "8001:8000"
+  tablero:
+    restart: unless-stopped
+    ports: !override
+      - "8050:8501"

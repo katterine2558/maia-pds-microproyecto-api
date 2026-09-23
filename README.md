@@ -204,4 +204,141 @@ Los reportes tienen un máximo de **10 páginas** (solo se califican las primera
 
 ## Ejecución
 
-Pendiente: documentar cómo entrenar, cómo levantar API y tablero (local y en contenedor), y cómo correr las pruebas.
+Requisitos: Git, Python 3.12, [`uv`](https://docs.astral.sh/uv/) y, para los contenedores, Docker con Compose v2.
+
+```bash
+git clone https://github.com/katterine2558/maia-pds-microproyecto-api.git
+cd maia-pds-microproyecto-api
+```
+
+### Todo en contenedores (lo más corto)
+
+```bash
+docker compose up --build
+```
+
+| Servicio | URL |
+|---|---|
+| Tablero | <http://localhost:8501> |
+| API (documentación interactiva) | <http://localhost:8000/docs> |
+
+El modelo viaja dentro de la imagen de la API (`api/artifacts/modelo.joblib` está
+versionado en Git), así que no hace falta traer datos ni credenciales. El tablero
+espera a que `/health` responda 200, es decir, a que el modelo esté cargado; por
+eso el primer arranque tarda unos segundos más. Para detener: `docker compose down`.
+
+El tablero se construye desde el repositorio
+[`-ui`](https://github.com/katterine2558/maia-pds-microproyecto-ui) (rama `develop`);
+su instalación por separado está en `docs/manual-instalacion.md` de ese repositorio.
+
+### Solo la API, sin Docker
+
+```bash
+uv run --no-project --with-requirements api/requirements.txt \
+    uvicorn api.main:app --port 8000
+```
+
+`pyproject.toml` no incluye FastAPI, porque solo la API lo usa y su lista de
+dependencias vive aparte, en `api/requirements.txt`. Comprobación:
+
+```bash
+curl -s http://localhost:8000/health
+# {"estado":"ok","modelo":"bosque_formulario_e3_v1"}
+```
+
+### Pruebas
+
+```bash
+uv run --extra dev pytest
+```
+
+Llaman a la API en proceso con el modelo real: no levantan servidor ni abren
+puertos. Una de ellas fija la probabilidad de un paciente de referencia (≈ 0,6355);
+si falla, alguien cambió `api/artifacts/modelo.joblib` y hay que confirmar que fue
+intencional.
+
+### Entrenar el modelo que sirve la API
+
+```bash
+dvc pull                                          # trae data/raw
+uv run python -m src.models.entrenar_formulario_e3
+```
+
+Entrena el bosque aleatorio de diez variables (las del formulario del tablero) con
+partición por paciente y escribe `api/artifacts/modelo.joblib` y `metricas.json`.
+Corre sin red ni credenciales.
+
+> **No reentrenar sin coordinarlo.** El artefacto versionado es el que sirve la API
+> y el que cita el reporte. Reentrenar con otra versión de scikit-learn cambia las
+> métricas aunque la semilla sea la misma.
+
+### Registrar el experimento en MLflow
+
+Necesita el servidor de MLflow encendido (ver `docs/soportes/mlflow-ec2.md`) y las
+credenciales que el equipo reparte por fuera del repositorio:
+
+```bash
+export MLFLOW_TRACKING_URI=http://<ip>:5000
+export MLFLOW_TRACKING_USERNAME=<usuario>
+export MLFLOW_TRACKING_PASSWORD=<clave>
+export MLFLOW_AUTOR=<quien escribió el modelo>    # opcional
+uv run python -m src.models.experimento_formulario_e3
+```
+
+Hace el mismo entrenamiento y deja en MLflow los parámetros, las métricas y el
+artefacto empaquetado.
+
+### Del experimento al servicio
+
+La API **no lee el modelo de MLflow**: sirve el `api/artifacts/modelo.joblib`
+que viaja dentro de su imagen. MLflow guarda el rastro de cómo se obtuvo ese
+archivo; el Model Registry no se usa. Llegar de un experimento a la API son tres
+pasos:
+
+1. **Entrenar y registrar.** `experimento_formulario_e3` reentrena, escribe
+   `api/artifacts/modelo.joblib` y `metricas.json`, y sube el mismo archivo a
+   MLflow como artefacto de una corrida etiquetada `sirve_api=si`.
+2. **Versionar.** Se hace commit de `api/artifacts/` junto con el código que lo
+   produjo.
+3. **Reconstruir.** La imagen de la API se construye de nuevo (`docker compose
+   build api`, o el push a `develop` en Railway) y se reinicia el servicio.
+
+Para comprobar que el modelo que sirve la API es el que quedó registrado, se
+comparan las métricas de la corrida `sirve_api=si` en MLflow con
+`api/artifacts/metricas.json` (`roc_auc`, `recall`, `falsos_negativos`). No sirve
+comparar el nombre: `bosque_formulario_e3_v1`, que devuelve `/health` y que lleva
+la etiqueta `modelo`, es el mismo en cualquier reentrenamiento.
+
+> **No reemplazar `modelo.joblib` sin registrar la corrida**, ni registrar una
+> corrida sin versionar el archivo que produjo. Cualquiera de las dos deja al
+> reporte citando métricas de un modelo distinto del que está sirviendo la API.
+> La prueba `test_predict_del_caso_de_referencia_no_cambia` avisa cuando el
+> artefacto cambia.
+
+### Desplegar en un servidor propio (EC2 u otro con Docker)
+
+El mismo `docker-compose.yml` sirve. Si el firewall solo permite ciertos puertos,
+se remapean sin tocar el archivo del repositorio, con un
+`docker-compose.override.yml` local (los puertos de la izquierda son los del
+servidor). El `docker-compose.yml` no define política de reinicio, así que el
+override es también el lugar para pedir que los servicios vuelvan solos si la
+máquina se reinicia:
+
+```yaml
+services:
+  api:
+    restart: unless-stopped
+    ports: !override
+      - "8001:8000"
+  tablero:
+    restart: unless-stopped
+    ports: !override
+      - "8050:8501"
+```
+
+```bash
+docker compose up -d --build
+```
+
+Las imágenes ocupan cerca de 1,5 GB: en discos pequeños conviene correr
+`docker builder prune -af` entre una construcción y otra.
