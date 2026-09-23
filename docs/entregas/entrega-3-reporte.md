@@ -24,6 +24,8 @@ Los datos fueron recopilados en hospitales de Estados Unidos entre 1999 y 2008. 
 
 Para preparar los datos se trataron variables administrativas y clínicas, se agruparon diagnósticos ICD-9 y se transformaron las variables categóricas. El identificador `patient_nbr` se utilizó para separar los conjuntos sin compartir pacientes entre entrenamiento y prueba, pero no como predictor. La variable `race` se reservó para examinar el comportamiento entre grupos y tampoco se incorporó como entrada.
 
+Las variables se ordenaron por importancia por permutación. Esa importancia se mide sobre el conjunto de entrenamiento: calcularla sobre el conjunto reservado dejaba optimista la cifra final, y se corrigió. Los candidatos se compararon con validación cruzada agrupada y estratificada por paciente (`StratifiedGroupKFold`). El remuestreo (SMOTE y variantes) y el umbral se ajustan dentro de cada *fold*, y la selección usa F2, que pesa el doble la sensibilidad. El conjunto de prueba se usó una sola vez, con el ganador ya elegido.
+
 En la Entrega 2 se compararon modelos de regresión logística y bosque aleatorio. La regresión inicial alcanzó **88,24 % de exactitud** en validación, pero identificó apenas el **2,00 % de los reingresos**. Por ello se evaluaron configuraciones dirigidas a mejorar la detección de la clase positiva. La comparación final se realizó entre la regresión logística V5 y el bosque aleatorio V2 sobre **19.821 encuentros de prueba**, incluidos **2.207 reingresos**.
 
 | Modelo | ROC-AUC | PR-AUC | Recall | Precisión | Falsos negativos |
@@ -63,7 +65,7 @@ El tablero está desarrollado en Streamlit y contiene las vistas **Paciente**, *
 
 En pruebas, `/health` respondió con `{"estado":"ok","modelo":"bosque_formulario_e3_v1"}`, y la API rechazó con estado **422** una estancia de cero días. Sobre un archivo de 28 egresos, Priorización resolvió el lote en 0,43 s y ordenó la lista de 0,59 a 0,29.
 
-Se ejecutaron la API en `127.0.0.1:8000` y el tablero en `localhost:8501`. En Paciente se ingresó un encuentro con edad `[70-80)`, admisión `Emergency`, servicio `Nephrology`, nueve días de estancia, nueve diagnósticos, 21 medicamentos, cinco ingresos previos, dos visitas previas a urgencias, A1C no medido y cambio de medicación `Sí`. La pantalla presentó una **probabilidad de 0,64**, **riesgo alto**, umbral de **0,30** y versión **`bosque_formulario_e3_v1`**. Se comprobó así que el formulario consultó la API local y mostró su respuesta. También se retiró de la tarjeta una cifra fija de «cohorte comparable»; tras la corrección, el resultado se presentó sin código HTML visible.
+En Paciente, un encuentro de referencia —edad `[70-80)`, admisión `Emergency`, servicio `Nephrology`, nueve días de estancia, nueve diagnósticos, 21 medicamentos, cinco ingresos previos, dos visitas previas a urgencias, A1C no medido y cambio de medicación `Sí`— devolvió una **probabilidad de 0,64**, **riesgo alto**, umbral **0,30** y versión **`bosque_formulario_e3_v1`**.
 
 # 4. Despliegue del tablero y la API
 
@@ -78,7 +80,7 @@ El tablero recibe `API_URL=http://api:8000`: dentro de la red de Compose la API 
 
 La cadena completa se verificó en contenedores: ambos servicios *healthy*, `/health` respondiendo con la versión del modelo, y el encuentro de referencia devolviendo 0,6355 tanto por `curl` contra la API como desde el contenedor del tablero. En pantalla, la vista Paciente lo muestra como **0,64 · riesgo alto · umbral 0,30**. Adicionalmente se verificó el mismo despliegue de punta a punta en un servidor propio (EC2 Ubuntu con Docker Compose), con los dos contenedores en estado *healthy* y reinicio automático.
 
-**La API está publicada en Railway.** El tablero corre en `https://maia-pds-microproyecto-ui-production.up.railway.app`, con despliegue continuo desde `develop`. La API se construyó desde el mismo `Dockerfile` (`api/railway.json`), pero **como servicio interno sin dominio público**: solo es alcanzable por la red privada de Railway, sobre IPv6 (el `Dockerfile` ajusta `uvicorn` para escuchar en `::` en lugar de `0.0.0.0`, necesario para esa red). El tablero consume la API por esa red privada, no por internet pública. Con la conexión activa, la vista Paciente en producción reprodujo la predicción ya verificada en contenedores: **0,64 · riesgo alto · umbral 0,30 · `bosque_formulario_e3_v1`**, y la vista Priorización procesó el archivo de ejemplo correctamente, confirmando el flujo completo en el ambiente publicado.
+**El tablero y la API están desplegados en Railway.** El tablero corre en <https://maia-pds-microproyecto-ui-production.up.railway.app>, con despliegue continuo desde `develop`. La API se construyó desde el mismo `Dockerfile` (`api/railway.json`), pero **como servicio interno sin dominio público**: solo es alcanzable por la red privada de Railway, sobre IPv6 (el `Dockerfile` ajusta `uvicorn` para escuchar en `::` en lugar de `0.0.0.0`, necesario para esa red). El tablero consume la API por esa red privada, no por internet pública. Con la conexión activa, la vista Paciente en producción reprodujo la predicción ya verificada en contenedores: **0,64 · riesgo alto · umbral 0,30 · `bosque_formulario_e3_v1`**, y la vista Priorización procesó el archivo de ejemplo correctamente, confirmando el flujo completo en el ambiente publicado.
 
 # 5. Principales resultados y conclusiones
 
@@ -90,7 +92,7 @@ La cadena completa se verificó en contenedores: ambos servicios *healthy*, `/he
 
 **Reducir el modelo a las diez variables del formulario cuesta poco.** Al integrar la API se encontró que el bosque V2 usaba más variables de las que el formulario pide, así que se entrenó `bosque_formulario_e3_v1` solo con las disponibles en pantalla. El ROC-AUC bajó de 0,667 a 0,631 y la PR-AUC de 0,2123 a 0,1929. La pérdida es real pero pequeña frente a la ganancia de usabilidad: quien consulta el tablero llena diez campos que conoce al momento del alta.
 
-**El entrenamiento no es reproducible entre máquinas, pero el artefacto desplegado es trazable.** Registrar la corrida en MLflow exigió volver a entrenar, y las métricas no salieron idénticas pese a compartir `random_state=42`: ROC-AUC pasó de 0,6292 a 0,6310 y los falsos negativos bajaron de 223 a 201. La causa está en el entorno —versión de `scikit-learn` y el paralelismo de `n_jobs=-1`—, no en los datos ni en los hiperparámetros. Para que un experimento sea reproducible no basta fijar la semilla: hay que fijar también las versiones de las bibliotecas. Lo que sí se verificó (sección 2.1) es que el artefacto que sirve la API hoy —en el servidor propio y en Railway— es, byte a byte, el mismo que MLflow tiene registrado.
+**El entrenamiento no es reproducible entre máquinas, pero el artefacto desplegado es trazable.** Registrar la corrida en MLflow exigió volver a entrenar, y las métricas no salieron idénticas pese a compartir `random_state=42`: ROC-AUC pasó de 0,6292 a 0,6310 y los falsos negativos bajaron de 223 a 201. La causa está en el entorno —versión de `scikit-learn` y el paralelismo de `n_jobs=-1`—, no en los datos ni en los hiperparámetros. Para que un experimento sea reproducible no basta fijar la semilla: hay que fijar también las versiones de las bibliotecas. Lo que sí se verificó (sección 2.1) es que el artefacto que sirve la API hoy —en el servidor propio y en Railway— coincide en tamaño y métricas con el que MLflow tiene registrado.
 
 **Límite del alcance.** Los datos provienen de hospitales de Estados Unidos entre 1999 y 2008. Los resultados no acreditan el desempeño del modelo en hospitales colombianos ni con pacientes actuales, y el tablero no sustituye la valoración clínica. Antes de cualquier uso real haría falta validar sobre datos locales y recientes, y revisar el comportamiento del modelo entre grupos de pacientes.
 
@@ -98,14 +100,15 @@ La cadena completa se verificó en contenedores: ambos servicios *healthy*, `/he
 
 | Soporte | Dónde |
 |---|---|
-| Modelos, pipelines, API y artefacto empaquetado | [`maia-pds-microproyecto-api`](https://github.com/katterine2558/maia-pds-microproyecto-api) |
-| Fuentes del tablero | [`maia-pds-microproyecto-ui`](https://github.com/katterine2558/maia-pds-microproyecto-ui) |
+| Video (≤ 10 min) | [video_sustentacion_grupo6.mp4](https://uniandes-my.sharepoint.com/:v:/r/personal/l_almanzas_uniandes_edu_co/Documents/EntregaFinal_soluciones/video_sustentacion_grupo6.mp4?d=wb255bae57c974e818b9afa44c081dd8e&csf=1&web=1&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=OQf8yX) |
+| Modelos, pipelines, API y artefacto empaquetado | [`maia-pds-microproyecto-api`](https://github.com/katterine2558/maia-pds-microproyecto-api) · release [`entrega-3`](https://github.com/katterine2558/maia-pds-microproyecto-api/releases/tag/entrega-3) |
+| Fuentes del tablero | [`maia-pds-microproyecto-ui`](https://github.com/katterine2558/maia-pds-microproyecto-ui) · release [`entrega-3`](https://github.com/katterine2558/maia-pds-microproyecto-ui/releases/tag/entrega-3) |
 | Datos versionados | DVC, remoto `storage` en S3 |
 | Experimentos | MLflow sobre EC2, experimento `readmision-diabetes`: **115 corridas registradas** (Camilo 100 · Leonardo 13 · Katerine 2) |
 | Artefactos de despliegue | `api/Dockerfile`, `Dockerfile` del tablero, `docker-compose.yml`, `api/railway.json` |
-| Despliegue publicado | Tablero: `maia-pds-microproyecto-ui-production.up.railway.app` · API: servicio interno en Railway, sin dominio público |
-| Manual de usuario | [`docs/manual-usuario.md`](https://github.com/katterine2558/maia-pds-microproyecto-ui/blob/develop/docs/manual-usuario.md) del repositorio del tablero |
-| Manual de instalación | [`docs/manual-instalacion.md`](https://github.com/katterine2558/maia-pds-microproyecto-ui/blob/develop/docs/manual-instalacion.md) |
+| Despliegue publicado | Tablero: <https://maia-pds-microproyecto-ui-production.up.railway.app> · API: servicio interno en Railway, sin dominio público |
+| Manual de usuario | [`docs/manual-usuario.md`](https://github.com/katterine2558/maia-pds-microproyecto-ui/blob/entrega-3/docs/manual-usuario.md) del repositorio del tablero |
+| Manual de instalación | [`docs/manual-instalacion.md`](https://github.com/katterine2558/maia-pds-microproyecto-ui/blob/entrega-3/docs/manual-instalacion.md) |
 
 Capturas de la máquina de MLflow, con el usuario y la IP visibles en cada una. El procedimiento completo está en `docs/soportes/mlflow-ec2.md`; al cerrar la entrega la instancia queda **detenida, no terminada**.
 
@@ -130,7 +133,7 @@ Capturas de la máquina de MLflow, con el usuario y la IP visibles en cada una. 
 
 El trabajo se reparte por ítem de trabajo, no por persona: cada ítem vive en su propia rama `feature/*`, sale de `develop` y vuelve a `develop` mediante un *pull request*. Los merges conservan el historial completo, sin *squash* ni *rebase* que colapsen la autoría, de modo que el aporte de cada integrante queda verificable en el repositorio. `main` conserva únicamente los estados integrados de cada entrega, con su *tag*.
 
-A lo largo del proyecto se abrieron pull requests en los dos repositorios: 27 de 28 integrados en el de modelos y API, y los 11 del tablero integrados.
+A lo largo del proyecto se abrieron pull requests en los dos repositorios: 35 de 36 integrados en el de modelos y API, y los 16 del tablero integrados.
 
 ## 7.1 Quién hizo qué
 
