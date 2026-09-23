@@ -3,6 +3,12 @@
 La API de inferencia se despliega como un servicio Railway construido desde
 `api/Dockerfile`. El tablero, en el repositorio `-ui`, ya corre asi.
 
+> **Estado final (Entrega 3).** La API quedo como servicio interno, **sin
+> dominio publico**: el tablero la alcanza por la red privada (IPv6) del
+> proyecto de Railway. El paso 4 y los `curl` con `<dominio-de-la-api>` solo
+> aplican si se le genera un dominio para probarla desde fuera; sin el, la
+> verificacion se hace desde el tablero.
+
 ## Antes de empezar
 
 El servicio necesita el artefacto del modelo, que viaja dentro de la imagen:
@@ -18,8 +24,8 @@ Desde el panel de Railway, en la cuenta donde vive el tablero:
    en cada push, igual que el tablero.
 3. En **Settings → Build**, confirmar que el builder es Dockerfile y la ruta es
    `api/Dockerfile`. El `api/railway.json` de este repositorio ya lo declara.
-4. **Settings → Networking → Generate Domain.** El puerto destino es el que
-   aparece en los logs del despliegue (`Uvicorn running on 0.0.0.0:XXXX`), no el
+4. *(Opcional)* **Settings → Networking → Generate Domain.** El puerto destino es el que
+   aparece en los logs del despliegue (`Uvicorn running on http://[::]:XXXX`), no el
    del `EXPOSE`: Railway inyecta su propia variable `PORT` en tiempo de
    ejecucion y pisa el `ENV PORT` de la imagen. Por eso el `CMD` usa
    `${PORT:-8000}`.
@@ -56,7 +62,7 @@ rama `develop` en **Settings → Source**, builder Dockerfile con ruta
 
 | Variable | Quien la define | Valor |
 |---|---|---|
-| `API_URL` | A mano, en el panel del tablero | `https://<dominio-de-la-api>`, sin barra final: `services/api.py` la agrega |
+| `API_URL` | A mano, en el panel del tablero | `http://<servicio-api>.railway.internal:<puerto>`, sin barra final: `services/api.py` la agrega. La API no tiene dominio publico: el tablero la alcanza por la red privada (IPv6) del proyecto, y `<puerto>` es el que Uvicorn anuncia en los logs de la API |
 | `PORT` | Railway, en tiempo de ejecucion | No agregarla a mano |
 
 `API_URL` es obligatoria. El `Dockerfile` del tablero trae
