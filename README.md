@@ -93,7 +93,7 @@ ambos repositorios** y los reportes de entrega enlazan los dos.
 | Sistema | Versiona |
 |---|---|
 | Git | Código: pipelines de procesamiento y entrenamiento en este repo, fuentes del tablero en `-ui`, artefactos de despliegue en ambos |
-| DVC | Datos (`data/`) y artefactos de modelo (`models/`) |
+| DVC | Datos (`data/raw`) |
 | MLflow | Experimentos, versiones de modelos y sus resultados |
 
 Los datos no van en Git. Los punteros `.dvc` sí.
@@ -134,41 +134,36 @@ La nota del curso es **individual** y se evalúa sobre los aportes reflejados en
 maia-pds-microproyecto-api/
 ├── README.md
 ├── maia_pds_proy.pdf          # enunciado del curso
-├── pyproject.toml             # dependencias y config del paquete src/   [pendiente]
-├── params.yaml                # hiperparametros y rutas, leidos por DVC  [pendiente]
-├── dvc.yaml                   # definicion del pipeline reproducible     [pendiente]
-├── docker-compose.yml         # levanta la api en contenedor             [pendiente]
+├── pyproject.toml             # dependencias del entrenamiento y las pruebas (uv)
+├── docker-compose.yml         # levanta API + tablero en contenedores
 │
 ├── data/                      # versionado por DVC, NO por Git
-│   ├── raw/                   # datos originales, inmutables
-│   ├── interim/               # resultados intermedios del pipeline
-│   └── processed/             # insumo final del entrenamiento
+│   └── raw/                   # datos originales, inmutables (puntero: data/raw.dvc)
 │
-├── models/                    # artefactos empaquetados (.pkl / .joblib), DVC
-│
-├── notebooks/                 # exploracion y analisis
+├── notebooks/                 # eda.ipynb (exploracion) y modelos.ipynb
 │
 ├── src/                       # libreria compartida (paquete instalable)
-│   ├── data/                  # ingesta y limpieza
-│   ├── features/              # transformaciones y construccion de variables
-│   └── models/                # entrenamiento, evaluacion y empaquetado
+│   ├── data/                  # checksums, diccionario y exploracion
+│   ├── features/              # construccion y esquema de variables
+│   ├── models/                # particion, entrenamiento, busquedas y evaluacion
+│   ├── seguimiento/           # configuracion de MLflow
+│   └── reportes/              # figuras de los reportes de entrega
 │
-├── api/                       # DESPLEGABLE — FastAPI + Dockerfile
-├── tests/
+├── api/                       # DESPLEGABLE — FastAPI + Dockerfile + railway.json
+│   └── artifacts/             # modelo.joblib y metricas.json que sirve la API
+├── tests/                     # pruebas de la API con el modelo real
+├── infra/                     # scripts de AWS: EC2 de MLflow, IAM, presupuesto
 │
 └── docs/
-    ├── guia-reporte.md        # que va en cada punto de los reportes de entrega
     ├── diccionario-variables.md  # referencia de las 50 columnas (generado)
     ├── maqueta/               # mockup del prototipo y sus iteraciones (E1)
     ├── entregas/              # reportes E1, E2, E3 (max 10 paginas c/u)
-    └── soportes/              # evidencias: capturas de MLflow, DVC, Git
+    └── soportes/              # evidencias: MLflow, DVC, despliegue, metricas
 ```
-
-Las carpetas existen; los archivos marcados `[pendiente]` se crean al montar el pipeline.
 
 ### Reglas de la estructura
 
-Cuatro decisiones que conviene no romper:
+Decisiones que conviene no romper:
 
 **`api/` vive en la raíz, no dentro de `src/`.** Es una unidad desplegable con su propio `Dockerfile` y su propio `requirements.txt`. Mantenerla aparte de `src/` evita que la imagen de servicio arrastre dependencias que solo usa el entrenamiento.
 
@@ -176,20 +171,17 @@ Cuatro decisiones que conviene no romper:
 
 **El tablero no importa de `src/`.** Vive en otro repositorio y se comunica con la API únicamente por HTTP. Es la frontera que evalúa el enunciado, y la separación en dos repos la vuelve estructural: el tablero no tiene forma de importar `src` ni de cargar el `.pkl`.
 
-**`data/` y `models/` están fuera de Git.** Los versiona DVC; en Git solo viajan los punteros `.dvc`. Por eso ambas carpetas aparecen en `.gitignore` con excepciones para `.gitkeep` y `*.dvc`.
+**`data/` está fuera de Git.** La versiona DVC; en Git solo viaja el puntero `data/raw.dvc`. El modelo que sirve la API es la excepción deliberada: `api/artifacts/modelo.joblib` va en Git para que la imagen de la API se construya sin credenciales ni `dvc pull` (ver *Del experimento al servicio*).
 
 **`docs/soportes/` existe desde el día uno.** Los soportes son parte fundamental de cada entrega y su ausencia penaliza fuerte, así que se llenan sobre la marcha, no la víspera.
 
 ### Flujo de datos
 
 ```
-data/raw  →  src/data  →  data/interim  →  src/features  →  data/processed
-                                                                    ↓
-                                                              src/models
-                                                                    ↓
-                                              models/  →  api/  →  HTTP  →  tablero
-                                                    ↑
-                                        MLflow registra cada experimento
+data/raw  →  src/features  →  src/models  →  api/artifacts/modelo.joblib
+                                   ↓                      ↓
+                        MLflow registra cada       api/  →  HTTP  →  tablero
+                             experimento
 ```
 
 ## Entregas
@@ -342,3 +334,11 @@ docker compose up -d --build
 
 Las imágenes ocupan cerca de 1,5 GB: en discos pequeños conviene correr
 `docker builder prune -af` entre una construcción y otra.
+
+### Despliegue publicado (Railway)
+
+El tablero y la API corren en Railway, construidos desde la rama `develop` de
+cada repositorio. El tablero es público en
+<https://maia-pds-microproyecto-ui-production.up.railway.app>; la API no tiene
+dominio público y el tablero la alcanza por la red privada de Railway. Pasos y
+variables de ambiente en `docs/soportes/despliegue-railway.md`.
